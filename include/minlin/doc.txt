@@ -1,0 +1,139 @@
+To write a new expression module, do the following:
+
+Define a family of classes or class templates representing the possible expressions.  
+At least one of these must be a class or class template responsible for managing
+the storage underlying a Vector or Matrix.
+
+These classes must have the following members:
+
+// Types
+value_type
+difference_type
+reference
+const_reference
+pointer
+const_pointer
+iterator
+const_iterator
+
+// Enumeration constants
+is_inplace
+
+The is_inplace enumeration constant is true if the type has in-place assignment
+semantics, and false otherwise.
+
+// Constructors, all with the usual semantics a-la std::vector
+Default constructor
+Constructor with one argument of type difference_type
+Copy constructor (multiple overloads to support heterogeneous expressions)
+
+// Functions, all with the usual semantics a-la std::vector
+Assignment operator (multiple overloads to support heterogeneous expressions)
+operator[]
+begin
+end
+size
+data
+
+// Class templates
+See the list below for the templates (right) and the expressions they
+correspond to (left).
+
+abs(v)          abs_v
+acos(v)         acos_v
+asin(v)         asin_v
+atan(v)         atan_v
+ceil(v)         ceil_v
+cos(v)          cos_v
+cosh(v)         cosh_v
+exp(v)          exp_v
+floor(v)        floor_v
+log(v)          log_v
+log10(v)        log10_v
+sin(v)          sin_v
+sinh(v)         sinh_v
+sqrt(v)         sqrt_v
+tan(v)          tan_v
+tanh(v)         tanh_v
+
++v              plus_v
+-v              minus_v
+!v              not_v
+
+s + v           s_plus_v
+s - v           s_minus_v
+s * v           s_times_v
+div(s,v)        s_divide_v
+pow(s,v)        s_power_v
+atan2(s,v)      s_atan2_v
+
+s == v          s_equal_to_v
+s != v          s_not_equal_to_v
+s <  v          s_less_than_v
+s <= v          s_less_than_or_equal_to_v
+s >  v          s_greater_than_v
+s >= v          s_greater_than_or_equal_to_v
+
+s || v          s_or_v
+s && v          s_and_v
+
+v + s           v_plus_s
+v - s           v_minus_s
+v * s           v_times_s
+v / s           v_divide_s
+pow(v,s)        v_power_s
+atan2(v,s)      v_atan2_s
+
+v == s          v_equal_to_s
+v != s          v_not_equal_to_s
+v <  s          v_less_than_s
+v <= s          v_less_than_or_equal_to_s
+v >  s          v_greater_than_s
+v >= s          v_greater_than_or_equal_to_s
+
+v || s          v_or_s
+v && s          v_and_s
+
+v + v           v_plus_v
+v - v           v_minus_v
+mul(v,v)        v_times_v
+div(v,v)        v_divide_v
+pow(v,v)        v_power_v
+atan2(v,v)      v_atan2_v
+
+v == v          v_equal_to_v
+v != v          v_not_equal_to_v
+v <  v          v_less_than_v
+v <= v          v_less_than_or_equal_to_v
+v >  v          v_greater_than_v
+v >= v          v_greater_than_or_equal_to_v
+
+v || v          v_or_v
+v && v          v_and_v
+
+mul(v,v,v)      v_times_v3
+mul(v,v,v,v)    v_times_v4
+etc. up to      v_times_v10
+
+v(all)          inplace
+v(a,b)          index_range_unit_stride
+v(a,c,b)        index_range_nonunit_stride
+// todo: double index ranges
+v(idxvec)       indirect_index
+
+The natural way to provide these member templates is to have all classes in the
+expression module derive from a common base which defines them.
+
+
+The minlin library interfaces to custom modules through the interface outlined
+above.  Some examples:
+
+Vector<MyStorage> u;    // calls MyStorage::MyStorage()
+Vector<MyStorage> v(5); // calls MyStorage::MyStorage(5)
+Vector<MyStorage>::iterator it = v.begin(); // calls MyStorage::begin()
+Vector<MyStorage>::value_type s = v(2);     // calls MyStorage::operator[]
+u = cos(v);  // calls MyStorage::operator=(cos(v)) where cos(v) has type
+             // MyStorage::cos_v<MyStorage>
+v = u - 2*v; // calls MyStorage::operator=(u - 2*v) where u - 2*v has type
+             // MyStorage::v_minus_v<MyStorage, MyStorage::s_times_v<MyStorage> >
+
