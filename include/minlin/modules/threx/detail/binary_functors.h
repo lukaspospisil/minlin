@@ -19,9 +19,9 @@ namespace detail {
 // Scalar-Vector addition
 template<typename T>
 struct SplusVFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit SplusVFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -35,9 +35,9 @@ struct SplusVFunctor {
 // Vector-Scalar addition
 template<typename T>
 struct VplusSFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit VplusSFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -51,9 +51,9 @@ struct VplusSFunctor {
 // Scalar-Vector subtraction
 template<typename T>
 struct SminusVFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit SminusVFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -67,9 +67,9 @@ struct SminusVFunctor {
 // Vector-Scalar subtraction
 template<typename T>
 struct VminusSFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit VminusSFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -83,9 +83,9 @@ struct VminusSFunctor {
 // Scalar-Vector multliplication
 template<typename T>
 struct StimesVFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit StimesVFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -99,9 +99,9 @@ struct StimesVFunctor {
 // Vector-Scalar multliplication
 template<typename T>
 struct VtimesSFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit VtimesSFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -115,9 +115,9 @@ struct VtimesSFunctor {
 // Scalar-Vector division
 template<typename T>
 struct SdivideVFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit SdivideVFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -131,9 +131,9 @@ struct SdivideVFunctor {
 // Vector-Scalar division
 template<typename T>
 struct VdivideSFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit VdivideSFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -147,9 +147,9 @@ struct VdivideSFunctor {
 // Scalar-Vector exponentiation
 template<typename T>
 struct SpowerVFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit SpowerVFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -164,9 +164,9 @@ struct SpowerVFunctor {
 // Vector-Scalar exponentiation
 template<typename T>
 struct VpowerSFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit VpowerSFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -181,9 +181,9 @@ struct VpowerSFunctor {
 // Scalar-Vector arctangent
 template<typename T>
 struct Satan2VFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit Satan2VFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -198,9 +198,9 @@ struct Satan2VFunctor {
 // Vector-Scalar arctangent
 template<typename T>
 struct Vatan2SFunctor {
-	typedef T result_type;
+    typedef T result_type;
     typedef T value_type;
-    value_type scalar;    
+    value_type scalar;
 
     explicit Vatan2SFunctor(value_type scalar) : scalar(scalar) {}
 
@@ -215,8 +215,8 @@ struct Vatan2SFunctor {
 // Vector-Vector addition
 template<typename T>
 struct VplusVFunctor {
-	typedef T result_type;
-	template<class Tuple>
+    typedef T result_type;
+    template<class Tuple>
     __host__ __device__
     result_type operator()(Tuple t) const
     {
@@ -227,8 +227,8 @@ struct VplusVFunctor {
 // Vector-Vector subtraction
 template<typename T>
 struct VminusVFunctor {
-	typedef T result_type;
-	template<class Tuple>
+    typedef T result_type;
+    template<class Tuple>
     __host__ __device__
     result_type operator()(Tuple t) const
     {
@@ -239,8 +239,8 @@ struct VminusVFunctor {
 // Vector-Vector multiplication
 template<typename T>
 struct VtimesVFunctor {
-	typedef T result_type;
-	template<class Tuple>
+    typedef T result_type;
+    template<class Tuple>
     __host__ __device__
     result_type operator()(Tuple t) const
     {
@@ -251,8 +251,8 @@ struct VtimesVFunctor {
 // Vector-Vector division
 template<typename T>
 struct VdivideVFunctor {
-	typedef T result_type;
-	template<class Tuple>
+    typedef T result_type;
+    template<class Tuple>
     __host__ __device__
     result_type operator()(Tuple t) const
     {
@@ -263,8 +263,8 @@ struct VdivideVFunctor {
 // Vector-Vector exponentiation
 template<typename T>
 struct VpowerVFunctor {
-	typedef T result_type;
-	template<class Tuple>
+    typedef T result_type;
+    template<class Tuple>
     __host__ __device__
     result_type operator()(Tuple t) const
     {
@@ -276,8 +276,8 @@ struct VpowerVFunctor {
 // Vector-Vector arctangent
 template<typename T>
 struct Vatan2VFunctor {
-	typedef T result_type;
-	template<class Tuple>
+    typedef T result_type;
+    template<class Tuple>
     __host__ __device__
     result_type operator()(Tuple t) const
     {

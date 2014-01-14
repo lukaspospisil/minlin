@@ -58,27 +58,35 @@ public:
     Matrix(difference_type m, difference_type n)
         : expression_(m*n), rows_(m), cols_(n)
     {
-        //std::cout << "Matrix(difference_type, difference_type)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Matrix(difference_type, difference_type)" << std::endl;
+        #endif
     }
 
     Matrix(const Matrix& other)
         : expression_(other.expression()), rows_(other.rows()), cols_(other.cols())
     {
-        //std::cout << "Matrix(const Matrix&)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Matrix(const Matrix&)" << std::endl;
+        #endif
     }
 
     template<class OtherExpression>
     Matrix(const Matrix<OtherExpression>& other)
         : expression_(other.expression()), rows_(other.rows()), cols_(other.cols())
     {
-        //std::cout << "Matrix(const Matrix<OtherExpression>&)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Matrix(const Matrix<OtherExpression>&)" << std::endl;
+        #endif
     }
 
     template<class OtherExpression>
     explicit Matrix(const Vector<OtherExpression>& other)
         : expression_(other.expression()), rows_(other.rows()), cols_(other.cols())
     {
-        //std::cout << "Matrix(const Vector<OtherExpression>&)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Matrix(const Vector<OtherExpression>&)" << std::endl;
+        #endif
     }
 
     // This can be used to create a matrix from an existing expression
@@ -88,8 +96,8 @@ public:
     {
         #ifdef MINLIN_DEBUG
         assert(rows() * cols() == size());
+        std::cout << "Matrix(const Expression&)" << std::endl;
         #endif
-        //std::cout << "Matrix(const Expression&)" << std::endl;
     }
 
     // Assignment
@@ -97,8 +105,8 @@ public:
 
     Matrix& operator=(const Matrix& other)
     {
-        //std::cout << "Matrix::operator=(const Matrix&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator=(const Matrix&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::assignment(*this, other);
         #endif
         detail::assign_dimensions_to_m<expression_type::is_inplace>(*this, other);
@@ -109,8 +117,8 @@ public:
     template<class OtherExpression>
     Matrix& operator=(const Matrix<OtherExpression>& other)
     {
-        //std::cout << "Matrix::operator=(const Matrix<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator=(const Matrix<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::assignment(*this, other);
         #endif
         detail::assign_dimensions_to_m<expression_type::is_inplace>(*this, other);
@@ -121,8 +129,8 @@ public:
     template<class OtherExpression>
     Matrix& operator=(const Vector<OtherExpression>& other)
     {
-        //std::cout << "Matrix::operator=(const Vector<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator=(const Vector<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::assignment(*this, other);
         #endif
         detail::assign_dimensions_to_m<expression_type::is_inplace>(*this, other);
@@ -141,8 +149,8 @@ public:
     template<class OtherExpression>
     Matrix& operator+=(const Matrix<OtherExpression>& other)
     {
-        //std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() += other.expression();
@@ -152,8 +160,8 @@ public:
     template<class OtherExpression>
     Matrix& operator-=(const Matrix<OtherExpression>& other)
     {
-        //std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() -= other.expression();
@@ -163,8 +171,8 @@ public:
     template<class OtherExpression>
     Matrix& operator*=(const Matrix<OtherExpression>& other)
     {
-        //std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() *= other.expression();
@@ -174,8 +182,8 @@ public:
     template<class OtherExpression>
     Matrix& operator/=(const Matrix<OtherExpression>& other)
     {
-        //std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Matrix::operator+=(const Matrix<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() /= other.expression();

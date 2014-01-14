@@ -7,7 +7,7 @@
 #define THREX_H
 
 #include "operators.h"
-#include "storage.h"
+//#include "storage.h"
 #include "functions.h"
 #include "host_vector.h"
 #include "device_vector.h"

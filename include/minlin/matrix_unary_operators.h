@@ -86,16 +86,16 @@ template<class Expression>
 typename Expression::difference_type
 size(const Matrix<Expression>& mat, typename Expression::difference_type dimension)
 {
-	#ifdef MINLIN_DEBUG
-	assert(dimension > 0);
-	#endif
-	if (dimension == 1) {
-		return mat.rows();
-	} else if (dimension == 2) {
-		return mat.cols();
-	} else {
-		return 1;
-	}
+    #ifdef MINLIN_DEBUG
+    assert(dimension > 0);
+    #endif
+    if (dimension == 1) {
+        return mat.rows();
+    } else if (dimension == 2) {
+        return mat.cols();
+    } else {
+        return 1;
+    }
 }
 
 } // end namespace minlin

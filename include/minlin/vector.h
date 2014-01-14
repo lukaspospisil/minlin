@@ -62,14 +62,18 @@ public:
     explicit Vector(difference_type n, orientation_type orientation = ColumnOriented)
         : expression_(n), orientation_(orientation)
     {
-        //std::cout << "Vector(difference_type)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Vector(difference_type)" << std::endl;
+        #endif
     }
 
     // Create vector as a copy of another of the same type
     Vector(const Vector& other)
         : expression_(other.expression()), orientation_(other.orientation())
     {
-        //std::cout << "Vector(const Vector&)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Vector(const Vector&)" << std::endl;
+        #endif
     }
 
     // Create vector as a copy of another of a different type
@@ -78,7 +82,9 @@ public:
     Vector(const Vector<OtherExpression>& other)
         : expression_(other.expression()), orientation_(other.orientation())
     {
-        //std::cout << "Vector(const Vector<OtherExpression>&)" << std::endl;
+        #ifdef MINLIN_DEBUG
+        std::cout << "Vector(const Vector<OtherExpression>&)" << std::endl;
+        #endif
     }
 
     // Create a vector as a copy of a matrix.
@@ -89,9 +95,9 @@ public:
           orientation_(other.cols() == 1 ? ColumnOriented : RowOriented)
     {
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector(const Matrix<OtherExpression>&)" << std::endl;
         assert(other.rows() == 1 || other.cols() == 1);
         #endif
-        //std::cout << "Vector(const Matrix<OtherExpression>&)" << std::endl;
     }
 
     // Create a vector as a window into existing storage.
@@ -100,9 +106,9 @@ public:
         :expression_(expression), orientation_(orientation)
     {
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector(const Expression&)" << std::endl;
         assert(orientation == RowOriented || orientation == ColumnOriented);
         #endif
-        //std::cout << "Vector(const Expression&)" << std::endl;
     }
 
     // Assignment
@@ -114,9 +120,9 @@ public:
     // Expressions of the form lhs = rhs allocate new storage.
     Vector& operator=(const Vector& other)
     {
-        //std::cout << "Vector::operator=(const Vector&)" << std::endl;
 
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator=(const Vector&)" << std::endl;
         // assert conformance in size (don't) if the assignment is in-place (allocating)
         detail::assert_conformance<expression_type::is_inplace>::assignment(*this, other);
         #endif
@@ -135,9 +141,9 @@ public:
     template<class OtherExpression>
     Vector& operator=(const Vector<OtherExpression>& other)
     {
-        //std::cout << "Vector::operator=(const Vector<OtherExpression>&)" << std::endl;
 
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator=(const Vector<OtherExpression>&)" << std::endl;
         // assert conformance in size (don't) if the assignment is in-place (allocating)
         detail::assert_conformance<expression_type::is_inplace>::assignment(*this, other);
         #endif
@@ -157,9 +163,9 @@ public:
     template<class OtherExpression>
     Vector& operator=(const Matrix<OtherExpression>& other)
     {
-        //std::cout << "Vector::operator=(const Matrix<OtherExpression>&)" << std::endl;
 
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator=(const Matrix<OtherExpression>&)" << std::endl;
         // assert conformance in size if the assigmment is in-place
         // assert matrix is a single row or column if the assignment is allocating
         detail::assert_conformance<expression_type::is_inplace>::assignment_m_to_v(*this, other);
@@ -188,8 +194,8 @@ public:
     template<class OtherExpression>
     Vector& operator+=(const Vector<OtherExpression>& other)
     {
-        //std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() += other.expression();
@@ -199,8 +205,8 @@ public:
     template<class OtherExpression>
     Vector& operator-=(const Vector<OtherExpression>& other)
     {
-        //std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() -= other.expression();
@@ -210,8 +216,8 @@ public:
     template<class OtherExpression>
     Vector& operator*=(const Vector<OtherExpression>& other)
     {
-        //std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() *= other.expression();
@@ -221,8 +227,8 @@ public:
     template<class OtherExpression>
     Vector& operator/=(const Vector<OtherExpression>& other)
     {
-        //std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         #ifdef MINLIN_DEBUG
+        std::cout << "Vector::operator+=(const Vector<OtherExpression>&)" << std::endl;
         detail::assert_conformance<expression_type::is_inplace>::compound(*this, other);
         #endif
         expression() /= other.expression();
@@ -257,7 +263,7 @@ public:
 
     // Indexing
     // ********
-    
+
     // A variety of indexing options is provided.  All are zero-based.
 
     // Single index (non-const, by reference)
@@ -292,7 +298,7 @@ public:
     {
         return make_vector(inplace(expression()), ColumnOriented);
     }
-    
+
     // Note: presently detail::all_type is defined as a pointer to function type.
     // This is to remove ambiguity with a global all function that CUDA brings in.
     // However that presents its own ambiguity with the call v(0), when difference_type

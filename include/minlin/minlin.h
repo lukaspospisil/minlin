@@ -92,4 +92,6 @@
 #include "matrix_functions.h"
 #include "matrix_io.h"
 
+#include "matrix_vector_operators.h"
+
 #endif

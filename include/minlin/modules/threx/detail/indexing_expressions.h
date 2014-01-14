@@ -85,6 +85,10 @@ struct VindexRangeUnitStride :
         return dim;
     }
 
+    difference_type stride() const {
+        return 1;
+    }
+
     expression_type& expression;
     difference_type start;
     difference_type dim;
@@ -163,10 +167,14 @@ struct VindexRangeNonunitStride :
         return dim;
     }
 
+    difference_type stride() const {
+        return by;
+    }
+
     expression_type& expression;
-    difference_type start;
-    difference_type by;
-    difference_type dim;
+    const difference_type start;
+    const difference_type by;
+    const difference_type dim;
 };
 
 template<class Expression, class IndexExpression>

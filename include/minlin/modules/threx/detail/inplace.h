@@ -6,6 +6,11 @@
 #ifndef THREX_DETAIL_INPLACE_H
 #define THREX_DETAIL_INPLACE_H
 
+// boost helpers
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/has_xxx.hpp>
+#include <boost/type_traits/is_arithmetic.hpp>
+
 #include "expression_types.h"
 #include "assignment.h"
 
@@ -17,6 +22,34 @@ namespace threx {
 
 namespace detail {
 
+
+BOOST_MPL_HAS_XXX_TRAIT_DEF(is_specialized);
+
+// meta-functions for specialising the assignment operations
+// only the first two template parameters, E and T, should be passed
+// the parameter E is the Expression type being passed
+// the parameter T is the type that will be used if E satisfies the meta-function
+template < typename Expression, typename T=void,
+           // disable if this is a
+           typename SpecializedDisabler=typename boost::disable_if<has_is_specialized<Expression> >::type,
+           typename ExpressionEnabler  =typename detail::expression_enabler<Expression::is_expression,void>::type >
+struct is_thrust_expression {
+    static const bool value = true;
+    typedef T type;
+};
+
+// specialized expressions, such as matrix-vector multiplication aren't implemented using thrust iterators
+// instead, a specialized implementation must be provided
+// in the case of matrix-vector multiplication, a call to BLAS gemv routine would be used
+template < typename Expression, typename T=void,
+           typename SpecializedEnabler=typename boost::enable_if<has_is_specialized<Expression> >::type,
+           typename ExpressionEnabler=typename detail::expression_enabler<Expression::is_expression,void>::type >
+struct is_specialized_expression
+{
+    static const bool value = true;
+    typedef T type;
+};
+
 // Base class provides in-place assignment and compound assignment
 template<class Derived, class ValueType>
 struct InPlaceOps : public ExpressionType {
@@ -27,10 +60,17 @@ struct InPlaceOps : public ExpressionType {
 
     // In-place assignment
     template<typename Expression>
-    typename detail::expression_enabler<Expression::is_expression, void>::type
+    typename is_thrust_expression<Expression>::type
     operator=(const Expression& expression)
     {
         assign_in_place(static_cast<Derived&>(*this), expression);
+    }
+
+    template<typename Expression>
+    typename is_specialized_expression<Expression>::type
+    operator=(const Expression& expression)
+    {
+        assign_in_place_specialized(static_cast<Derived&>(*this), expression);
     }
 
     // In-place assignment  

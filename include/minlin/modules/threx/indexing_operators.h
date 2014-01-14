@@ -36,7 +36,7 @@ typename detail::expression_enabler<Expression::is_expression,
 detail::VindexRangeNonunitStride<Expression> >::type
 index_range_nonunit_stride(Expression& expression,
         typename Expression::difference_type start,
-		typename Expression::difference_type by,
+        typename Expression::difference_type by,
         typename Expression::difference_type finish)
 {
     return detail::VindexRangeNonunitStride<Expression>(expression, start, by, finish);
@@ -60,8 +60,8 @@ double_index_range_unit_stride(Expression& expression,
                                typename Expression::difference_type col_start,
                                typename Expression::difference_type col_end)
 {
-	return detail::VdoubleIndexRangeUnitStride<Expression>(
-	    expression, rows, row_start, row_end, col_start, col_end
+    return detail::VdoubleIndexRangeUnitStride<Expression>(
+        expression, rows, row_start, row_end, col_start, col_end
     );
 }
 

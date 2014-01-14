@@ -1,20 +1,68 @@
-/*******************************************************************************
-   minlin library.
-   copyright 2013 Timothy Moroney: t.moroney@qut.edu.au
-   licensed under BSD license (see LICENSE.txt for details)
-*******************************************************************************/
-#ifndef THREX_STORAGE_H
-#define THREX_STORAGE_H
+#pragma once
 
-#include "detail/storage.h"
+// blas routines for cuda and mkl
+#include <cublas_v2.h>
+#include <mkl.h>
+
+#include <string>
+
+// implementation of gemv kernel
+// uses blas routines provided by either MKL or CUBLAS
+//
+// Ben Cumming
+
 
 namespace minlin {
-
 namespace threx {
+namespace detail {
 
+//////////////////////////////////////////////////////////////
+// wrapper for gemv call to MKL
+//////////////////////////////////////////////////////////////
+// TODO : add checks that ensure only double and float are accepted
+
+// overloaded for double
+bool gemv_host (
+    double const* A, double const* x, double* y,
+    double alpha, double beta,
+    int m, int n,
+    int incx, int incy, int lda,
+    char trans)
+{
+    dgemv(&trans, &m, &n, &alpha, const_cast<double*>(A), &lda, const_cast<double*>(x), &incx, &beta, y, &incy);
+    return true;
+}
+
+// overloaded for float
+bool gemv_host (
+    float const* A, float const* x, float* y,
+    float alpha, float beta,
+    int m, int n,
+    int incx, int incy, int lda,
+    char trans)
+{
+    sgemv(&trans, &m, &n, &alpha, const_cast<float*>(A), &lda, const_cast<float*>(x), &incx, &beta, y, &incy);
+    return true;
+}
+
+template <typename T>
+struct print_traits {
+    static std::string print(){ return std::string("unknown"); };
+};
+template <>
+struct print_traits<float> {
+    static std::string print(){ return std::string("float"); };
+};
+template <>
+struct print_traits<double> {
+    static std::string print(){ return std::string("double"); };
+};
+
+#define DETAIL_STORAGE
+#ifdef DETAIL_STORAGE
 template<class Storage>
 class ByValue : private Storage,
-                public detail::InPlaceOps<ByValue<Storage>, typename Storage::value_type> {
+                public InPlaceOps<ByValue<Storage>, typename Storage::value_type> {
 public:
 
     // This type has allocating assignment semantics, which means we need to
@@ -31,7 +79,7 @@ public:
     typedef typename storage::iterator iterator;
     typedef typename storage::const_iterator const_iterator;
 
-    typedef detail::InPlaceOps<ByValue, value_type> base;
+    typedef InPlaceOps<ByValue, value_type> base;
 
     explicit ByValue(difference_type n = 0)
         : storage(n)
@@ -92,7 +140,7 @@ public:
 
     // Allocating assignment
     template<typename Expression>
-    typename detail::expression_enabler<Expression::is_expression, ByValue&>::type
+    typename expression_enabler<Expression::is_expression, ByValue&>::type
     operator=(const Expression& expression)
     {
         #ifdef MINLIN_VERBOSE
@@ -102,22 +150,6 @@ public:
         base::operator=(expression);     // in-place assignment
         return *this;
     }
-
-    template<class Expression>
-    typename detail::expression_enabler<Expression::is_level2_operation, ByValue&>::type
-    operator=(const Expression& other)
-    {
-        // what do we know?
-        // first::do we want to assign in place or not?
-        // this operation will not be in place: the expression parameter is a concrete type
-        //          ByValue< thrust::host_vector<T> >
-        #ifdef MINLIN_VERBOSE
-        std::cout << "ByValue(const Level2Operation&) ** ALLOCATION **" << std::endl;
-        #endif
-        base::operator=(other);
-        return *this;
-    }
-
 
     // Note: no operator=(value_type)
 
@@ -134,7 +166,7 @@ public:
 };
 
 template<class Storage>
-class ByReference : public detail::InPlaceOps<ByReference<Storage>, typename Storage::value_type> {
+class ByReference : public InPlaceOps<ByReference<Storage>, typename Storage::value_type> {
 public:
 
     typedef Storage storage_type;
@@ -198,15 +230,15 @@ private:
 
 template<typename Iterator>
 class Range :
-    private detail::RangeWrapper<Iterator>,
-    public  detail::InPlaceOps<Range<Iterator>,
+    private RangeWrapper<Iterator>,
+    public  InPlaceOps<Range<Iterator>,
                                typename std::iterator_traits<Iterator>::value_type> {
 public:
 
     typedef Iterator iterator;
     typedef iterator const_iterator;
 
-    typedef detail::RangeWrapper<iterator> range_wrapper;
+    typedef RangeWrapper<iterator> range_wrapper;
 
     typedef typename std::iterator_traits<iterator>::value_type value_type;
     typedef typename std::iterator_traits<iterator>::difference_type difference_type;
@@ -229,9 +261,8 @@ private:
     Range& operator=(const Range&);
 
 };
-
-} // end namespace threx
-
-} // end namespace minlin
-
 #endif
+
+} //namespace detail
+} //namespace threx
+} //namespace minlin

@@ -9,7 +9,7 @@
 namespace minlin {
 
 namespace threx {
-    
+
 namespace detail {
 
 // Declare all the expression types supported by threx
@@ -105,6 +105,11 @@ template<class Expression> class VindexRangeNonunitStride;
 template<class Expression, class IndexExpression> class VindexI;
 
 template<class Expresssion> class VdoubleIndexRangeUnitStride;
+
+/****************************
+ * BLAS level two operators *
+ ****************************/
+template<class Left, class Right> class MtimesV;
 
 // Map these types to the agreed-upon names so that minlin types can find them
 struct ExpressionType {
@@ -454,11 +459,17 @@ THREX_DEFINE_UNARY_OPERATOR_TYPE(tanh)
     };
 
     // Indirect vector indexing
-	template<class Expression, class IndexExpression>
-	struct indirect_index {
-		typedef VindexI<Expression, const IndexExpression> type;
-	};
+    template<class Expression, class IndexExpression>
+    struct indirect_index {
+        typedef VindexI<Expression, const IndexExpression> type;
+    };
 
+    // Matrix-Vector operators
+    // matrix-vector multiplication
+    template<class Mat, class Vec>
+    struct m_times_v {
+        typedef MtimesV<Mat, Vec> type;
+    };
 };
 
 // Simple enabler/disabler for expression types
