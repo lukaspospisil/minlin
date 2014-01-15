@@ -403,11 +403,11 @@ public:
     }
 
     difference_type rows() const {
-        return orientation() == RowOriented ? size() : 1;
+        return orientation() == RowOriented ? 1 : size();
     }
 
     difference_type cols() const {
-        return orientation() == ColumnOriented ? size() : 1;
+        return orientation() == ColumnOriented ? 1 : size();
     }
 
     expression_type& expression() {
