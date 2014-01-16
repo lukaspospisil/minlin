@@ -10,6 +10,12 @@ CUDAROOT=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7700.8.1
 BOOSTROOT=/apps/santis/boost/1.54/gcc_481/include
 GPP=/opt/gcc/4.8.2/bin/g++
 
+# daint
+MKLROOT=/opt/intel/14.0.1.106/composer_xe_2013_sp1.1.106/mkl
+CUDAROOT=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7700.8.1
+BOOSTROOT=/apps/santis/boost/1.54/gcc_481/include
+GPP=/opt/gcc/4.8.1/bin/g++
+
 MKLLIBS=-L$(MKLROOT)/lib/intel64 -lmkl_gnu_thread -lmkl_core -lmkl_rt
 CUDALIBS=-L$(CUDAROOT)/lib64 -lcublas
 LIBS=$(MKLLIBS) $(CUDALIBS)

@@ -103,21 +103,9 @@ public:
         return *this;
     }
 
-    template<class Expression>
-    typename detail::expression_enabler<Expression::is_level2_operation, ByValue&>::type
-    operator=(const Expression& other)
-    {
-        // what do we know?
-        // first::do we want to assign in place or not?
-        // this operation will not be in place: the expression parameter is a concrete type
-        //          ByValue< thrust::host_vector<T> >
-        #ifdef MINLIN_VERBOSE
-        std::cout << "ByValue(const Level2Operation&) ** ALLOCATION **" << std::endl;
-        #endif
-        base::operator=(other);
-        return *this;
+    difference_type stride() const {
+        return 1;
     }
-
 
     // Note: no operator=(value_type)
 
@@ -180,13 +168,17 @@ public:
     iterator end() {
         return storage.end();
     }
-    
+
     const_iterator end() const {
         return storage.end();
     }
 
     difference_type size() const {
         return storage.size();
+    }
+
+    difference_type stride() const {
+        return 1;
     }
 
 private:

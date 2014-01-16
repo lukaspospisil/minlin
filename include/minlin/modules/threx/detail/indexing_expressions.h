@@ -89,6 +89,14 @@ struct VindexRangeUnitStride :
         return 1;
     }
 
+    pointer data() {
+        return expression.data();
+    }
+
+    const pointer data() const {
+        return expression.data();
+    }
+
     expression_type& expression;
     difference_type start;
     difference_type dim;
@@ -169,6 +177,14 @@ struct VindexRangeNonunitStride :
 
     difference_type stride() const {
         return by;
+    }
+
+    pointer data() {
+        return expression.data();
+    }
+
+    const pointer data() const {
+        return expression.data();
     }
 
     expression_type& expression;

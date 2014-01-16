@@ -842,19 +842,22 @@ struct MtimesV : public ExpressionType {
         // option 2:
         // make both the vector and range_wrapper types provide the same interface
         // the problem is that stride() is not a sensible property for a vector to carry
+        //  FOR NOW take this approach, but the traits class approach above would be best it works
         //value_type const *x = right.pointer();
         //int incx            = right.stride();
         //int lenx            = right.size();
 
         // we want to extract stride information
-        int  incx=1;
-        int  incy=1;
+        int  incy=lhs.stride();
+        int  incx=right.stride();
         int  lda=rows;
         char trans='N';
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////
         std::cout << "apply::lhs has dimension " << lhs.size() << std::endl;
         std::cout << "apply::lhs has pointer " << y << std::endl;
+        std::cout << "apply::lhs stride " << incy << std::endl;
+        std::cout << "apply::right stride " << incx << std::endl;
         std::cout << "apply::rows, cols and alpha " << rows << ", " << cols << ", " << alpha << std::endl;
         std::cout << "value_type == " << print_traits<value_type>::print() << std::endl;
         /////////////////////////////////////////////////////////////////////////////////////////////////////
