@@ -90,11 +90,11 @@ struct VindexRangeUnitStride :
     }
 
     pointer data() {
-        return expression.data();
+        return expression.data() + start;
     }
 
     const pointer data() const {
-        return expression.data();
+        return expression.data() + start;
     }
 
     expression_type& expression;
@@ -180,11 +180,11 @@ struct VindexRangeNonunitStride :
     }
 
     pointer data() {
-        return expression.data();
+        return expression.data() + start;
     }
 
     const pointer data() const {
-        return expression.data();
+        return expression.data() + start;
     }
 
     expression_type& expression;
