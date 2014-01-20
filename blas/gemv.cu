@@ -5,10 +5,10 @@
 #include <minlin/minlin.h>
 using namespace minlin::threx; // just dump the namespace for this example
 
-//#include <cublas_v2.h>
+#include <cublas_v2.h>
 #include "utilities.h"
 
-//////////////////////////////////////////////////////////////////////////////////
+MINLIN_INIT
 
 int main(void)
 {
@@ -17,12 +17,10 @@ int main(void)
     using minlin::end;
     using minlin::ColumnOriented;
 
-    // initialize cuda stuff
-    //cublasHandle_t handle = init_cublas();
-
     // load matrices
     int m = 8;
     int n = 4;
+
     // allocate space for matrices and vectors, which will be used for the operation y(all)=A*x
     std::cout << "== creating m*n matrix A" << std::endl;
     HostMatrix<real> A(m,n);
@@ -55,14 +53,22 @@ int main(void)
     std::cout << "\nB\n" << B;
     std::cout << "\nx\n" << x;
 
+    //// copy host matrices to the device
+    DeviceMatrix<real> Ad = A;
+    DeviceMatrix<real> Bd = B;
+    DeviceVector<real> yd = y;
+
     y(all) = A*x;
-    //y = A*x(0,2,n);
-    //y = A*x;
-    std::cout << "\ny=A*x\n" << y;
+    std::cout << "\ny=A*x\n" << y << std::endl;
 
     for(int i=0; i<B.rows(); i++) {
-        y = A*B(all,i);
-        std::cout << "\ny=A*B(all," << i <<")\n" << y;
+        y(all) = A*B(all,i);
+        std::cout << "host   : y=A*B(all," << i <<")\n" << y << std::endl;
+    }
+
+    for(int i=0; i<B.rows(); i++) {
+        yd(all) = Ad*Bd(all,i);
+        std::cout << "device : y=A*B(all," << i <<")\n" << yd << std::endl;
     }
 
     for(int j=0; j<C.cols(); j++) {
@@ -75,9 +81,6 @@ int main(void)
 
     HostVector<real> z = A(m/2,all);
     std::cout << "\nz=A(1,all)\n" << z;
-
-    // finalize
-    //kill_cublas(handle);
 
     std::cout << std::endl;
 }

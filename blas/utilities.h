@@ -9,6 +9,7 @@ using namespace minlin::threx; // just dump the minlin namespace
 #include <cublas_v2.h>
 #include <mkl.h>
 
+
 /************************************************************************
   Wrappers for BLAS level 2 and level 3 operations
 

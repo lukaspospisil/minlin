@@ -13,6 +13,7 @@
 #include "device_vector.h"
 #include "host_matrix.h"
 #include "device_matrix.h"
+#include "blas.h"
 
 // Some cuda header seems to want to define a bool all(bool) in global scope.
 // Unbelievable!  So here's the workaround for now - just use that global all.

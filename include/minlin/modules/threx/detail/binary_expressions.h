@@ -8,12 +8,12 @@
 
 #include "expression_types.h"
 #include "binary_functors.h"
-//#include "vector_properties.h"
 #include "gemv.h"
 
 #include <thrust/tuple.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
+#include <thrust/device_ptr.h>
 
 #include <cmath>
 
@@ -826,6 +826,17 @@ struct MtimesV : public ExpressionType {
         return left.size()/right.size();
     }
 
+    // helpers to determine whether data is on host or device
+    template <typename ptr_type>
+    struct is_device_data {
+        static const bool value = false;
+    };
+
+    template <typename T>
+    struct is_device_data<thrust::device_ptr<T> > {
+        static const bool value = true;
+    };
+
     // apply matrix vector multiplication
     template <typename LValue>
     void apply(LValue &lhs, value_type beta=value_type(0)) const {
@@ -833,36 +844,22 @@ struct MtimesV : public ExpressionType {
         value_type const *A = thrust::raw_pointer_cast( left.data() );
         value_type const *x = thrust::raw_pointer_cast( right.data() );
 
-        // how to get data out?
-        // option 1:
-        //value_type const *x = vector_properties<right_expression>::pointer(right);
-        //int incx            = vector_properties<right_expression>::stride(right);
-        //int lenx            = vector_properties<right_expression>::size(right);
+        bool on_device = is_device_data<typename LValue::pointer>::value;
+        // check that data in the matrix and the two vectors are in the same memory space
+        // this should be extended to test that each expression also refers to concrete storage
+        assert(   is_device_data<typename left_expression::pointer>::value == on_device
+               && is_device_data<typename right_expression::pointer>::value == on_device
+               && is_device_data<typename LValue::pointer>::value == on_device);
 
-        // option 2:
-        // make both the vector and range_wrapper types provide the same interface
-        // the problem is that stride() is not a sensible property for a vector to carry
-        //  FOR NOW take this approach, but the traits class approach above would be best it works
-        //value_type const *x = right.pointer();
-        //int incx            = right.stride();
-        //int lenx            = right.size();
-
-        // we want to extract stride information
         int  incy=lhs.stride();
         int  incx=right.stride();
         int  lda=rows;
         char trans='N';
 
-        /////////////////////////////////////////////////////////////////////////////////////////////////////
-        //std::cout << "apply::lhs has dimension " << lhs.size() << std::endl;
-        //std::cout << "apply::lhs has pointer " << y << std::endl;
-        //std::cout << "apply::lhs stride " << incy << std::endl;
-        //std::cout << "apply::right stride " << incx << std::endl;
-        //std::cout << "apply::rows, cols : alpha, beta " << rows << ", " << cols << " : " << alpha << " , " << beta << std::endl;
-        //std::cout << "value_type == " << print_traits<value_type>::print() << std::endl;
-        /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        gemv_host(A, x, y, alpha, beta, int(rows), int(cols), int(incx), int(incy), int(lda), trans);
+        if(on_device)
+            gemv_device(A, x, y, alpha, beta, int(rows), int(cols), int(incx), int(incy), int(lda), trans);
+        else
+            gemv_host(A, x, y, alpha, beta, int(rows), int(cols), int(incx), int(incy), int(lda), trans);
     }
 
     const left_expression& left;

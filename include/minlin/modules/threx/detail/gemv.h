@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "../blas.h"
+
 // implementation of gemv kernel
 // uses blas routines provided by either MKL or CUBLAS
 //
@@ -45,18 +47,38 @@ bool gemv_host (
     return true;
 }
 
-template <typename T>
-struct print_traits {
-    static std::string print(){ return std::string("unknown"); };
-};
-template <>
-struct print_traits<float> {
-    static std::string print(){ return std::string("float"); };
-};
-template <>
-struct print_traits<double> {
-    static std::string print(){ return std::string("double"); };
-};
+//////////////////////////////////////////////////////////////
+// wrapper for gemv call to cublas
+//////////////////////////////////////////////////////////////
+// overloaded for double
+bool gemv_device (
+    double const* A, double const* x, double* y,
+    double alpha, double beta,
+    int m, int n,
+    int incx, int incy, int lda,
+    char trans)
+{
+    cublasHandle_t& handle = CublasState::instance()->handle();
+    cublasOperation_t opt = trans=='N' ? CUBLAS_OP_N : CUBLAS_OP_T;
+    cublasStatus_t status =
+        cublasDgemv(handle, opt, m, n, &alpha, const_cast<double*>(A), lda, const_cast<double*>(x), incx, &beta, y, incy);
+    return (status == CUBLAS_STATUS_SUCCESS);
+}
+
+// overloaded for double
+bool gemv_device (
+    float const* A, float const* x, float* y,
+    float alpha, float beta,
+    int m, int n,
+    int incx, int incy, int lda,
+    char trans)
+{
+    cublasHandle_t& handle = CublasState::instance()->handle();
+    cublasOperation_t opt = trans=='N' ? CUBLAS_OP_N : CUBLAS_OP_T;
+    cublasStatus_t status =
+        cublasSgemv(handle, opt, m, n, &alpha, const_cast<float*>(A), lda, const_cast<float*>(x), incx, &beta, y, incy);
+    return (status == CUBLAS_STATUS_SUCCESS);
+}
 
 } //namespace detail
 } //namespace threx
