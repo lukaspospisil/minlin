@@ -140,9 +140,7 @@ void assign_in_place(LValue& lvalue, const Expression& expression)
 template<class LValue, class Expression>
 void assign_in_place_specialized(LValue& lvalue, const Expression& expression)
 {
-    std::cout << "specialized inplace assgnment" << std::endl;
-
-    // have the expression implement it's own specialization
+    // the expression must implement it's own specialization
     expression.apply(lvalue);
 }
 

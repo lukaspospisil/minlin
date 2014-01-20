@@ -189,6 +189,18 @@ struct InPlace : public InPlaceOps<InPlace<Expression>, typename Expression::val
         return expression.size();
     }
 
+    pointer data() {
+        return expression.data();
+    }
+
+    const pointer data() const {
+        return expression.data();
+    }
+
+    difference_type stride() const {
+        return expression.stride();
+    }
+
     expression_type& expression;
 };
 

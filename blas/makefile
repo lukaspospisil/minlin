@@ -11,7 +11,7 @@ BOOSTROOT=/apps/santis/boost/1.54/gcc_481/include
 GPP=/opt/gcc/4.8.2/bin/g++
 
 # daint
-MKLROOT=/opt/intel/14.0.1.106/composer_xe_2013_sp1.1.106/mkl
+MKLROOT=/opt/intel/13.1.0.146/composer_xe_2013.2.146/mkl
 CUDAROOT=/opt/nvidia/cudatoolkit/5.5.20-1.0501.7700.8.1
 BOOSTROOT=/apps/santis/boost/1.54/gcc_481/include
 GPP=/opt/gcc/4.8.1/bin/g++
@@ -24,12 +24,13 @@ INCLUDE=-I../include -I$(MKLROOT)/include -I$(CUDAROOT)/include -I$(BOOSTROOT)
 
 NVCCFLAGS=-ccbin=$(GPP) --compiler-options -fopenmp
 
+ARGS=-DUSE_GPU -DMINLIN_DEBUG
 ARGS=-DUSE_GPU
 
 all: gemv
 
 gemv: gemv.cu utilities.h
-	nvcc -arch=sm_35 gemv.cu -o gemv $(NVCCFLAGS) $(INCLUDE) $(LIBS) -DUSE_GPU -DMINLIN_DEBUG
+	nvcc -arch=sm_35 gemv.cu -o gemv $(NVCCFLAGS) $(INCLUDE) $(LIBS) $(ARGS)
 
 clean :
 	rm -f gemv

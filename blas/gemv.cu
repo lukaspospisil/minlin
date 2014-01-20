@@ -5,7 +5,7 @@
 #include <minlin/minlin.h>
 using namespace minlin::threx; // just dump the namespace for this example
 
-#include <cublas_v2.h>
+//#include <cublas_v2.h>
 #include "utilities.h"
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@ int main(void)
     using minlin::ColumnOriented;
 
     // initialize cuda stuff
-    cublasHandle_t handle = init_cublas();
+    //cublasHandle_t handle = init_cublas();
 
     // load matrices
     int m = 8;
@@ -28,6 +28,8 @@ int main(void)
     HostMatrix<real> A(m,n);
     std::cout << "== creating n*n matrix B" << std::endl;
     HostMatrix<real> B(n,n);
+    std::cout << "== creating m*n matrix C" << std::endl;
+    HostMatrix<real> C(m,n);
     std::cout << "== creating n vector x" << std::endl;
     HostVector<real> x(n);
     std::cout << "== creating n vector y" << std::endl;
@@ -38,26 +40,35 @@ int main(void)
     l(all) = 0.;
     l(0,2,2*n-1) = 1.0;
 
+    C(all) = 0;
+
     std::cout << "== setting A(all,i) = i" << std::endl;
     for(int i=0; i<m; i++)
         A(i,all) = real(i);
-    std::cout << "== setting B(all,i) = 2*i" << std::endl;
+    std::cout << "== setting B(i,all) = i-1" << std::endl;
     for(int i=0; i<n; i++)
-        B(i,all) = real(2*i);
+        B(all,i) = real(i-1);
     std::cout << "== setting x(all) = 2" << std::endl;
-    x(all) = 2.0;
+    x(all) = 1.0;
 
     std::cout << "\nA\n" << A;
     std::cout << "\nB\n" << B;
     std::cout << "\nx\n" << x;
 
-    //y(all) = A*x;
+    y(all) = A*x;
     //y = A*x(0,2,n);
-    y = A*x;
+    //y = A*x;
     std::cout << "\ny=A*x\n" << y;
 
-    y = A*B(all,1);
-    std::cout << "\ny=A*B(all,1)\n" << y;
+    for(int i=0; i<B.rows(); i++) {
+        y = A*B(all,i);
+        std::cout << "\ny=A*B(all," << i <<")\n" << y;
+    }
+
+    for(int j=0; j<C.cols(); j++) {
+        C(all,j) = A*B(all,j);
+    }
+    std::cout << "\nC(all,j) = A*B(all,j) forall j in [0," << n << ")\n" << C;
 
     y = B*l(0,2,2*n-1);
     std::cout << "\ny=B*l(0,2,2*n)\n" << y;
@@ -66,7 +77,7 @@ int main(void)
     std::cout << "\nz=A(1,all)\n" << z;
 
     // finalize
-    kill_cublas(handle);
+    //kill_cublas(handle);
 
     std::cout << std::endl;
 }

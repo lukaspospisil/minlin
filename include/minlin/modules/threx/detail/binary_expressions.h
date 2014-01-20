@@ -854,12 +854,12 @@ struct MtimesV : public ExpressionType {
         char trans='N';
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////
-        std::cout << "apply::lhs has dimension " << lhs.size() << std::endl;
-        std::cout << "apply::lhs has pointer " << y << std::endl;
-        std::cout << "apply::lhs stride " << incy << std::endl;
-        std::cout << "apply::right stride " << incx << std::endl;
-        std::cout << "apply::rows, cols and alpha " << rows << ", " << cols << ", " << alpha << std::endl;
-        std::cout << "value_type == " << print_traits<value_type>::print() << std::endl;
+        //std::cout << "apply::lhs has dimension " << lhs.size() << std::endl;
+        //std::cout << "apply::lhs has pointer " << y << std::endl;
+        //std::cout << "apply::lhs stride " << incy << std::endl;
+        //std::cout << "apply::right stride " << incx << std::endl;
+        //std::cout << "apply::rows, cols : alpha, beta " << rows << ", " << cols << " : " << alpha << " , " << beta << std::endl;
+        //std::cout << "value_type == " << print_traits<value_type>::print() << std::endl;
         /////////////////////////////////////////////////////////////////////////////////////////////////////
 
         gemv_host(A, x, y, alpha, beta, int(rows), int(cols), int(incx), int(incy), int(lda), trans);
