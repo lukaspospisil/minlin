@@ -16,6 +16,7 @@
 #include <thrust/device_ptr.h>
 
 #include <cmath>
+#include <cassert>
 
 namespace minlin {
 
@@ -847,9 +848,11 @@ struct MtimesV : public ExpressionType {
         bool on_device = is_device_data<typename LValue::pointer>::value;
         // check that data in the matrix and the two vectors are in the same memory space
         // this should be extended to test that each expression also refers to concrete storage
+#ifdef MINLIN_DEBUG
         assert(   is_device_data<typename left_expression::pointer>::value == on_device
                && is_device_data<typename right_expression::pointer>::value == on_device
                && is_device_data<typename LValue::pointer>::value == on_device);
+#endif
 
         int  incy=lhs.stride();
         int  incx=right.stride();
