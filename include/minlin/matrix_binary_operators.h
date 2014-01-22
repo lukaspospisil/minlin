@@ -165,6 +165,20 @@ atan2(const Matrix<LeftExpression>& left, const Matrix<RightExpression>& right)
     return make_matrix(atan2(left.expression(), right.expression()), left.rows(), left.cols());
 }
 
+template<class LeftExpression, class RightExpression>
+Matrix<typename LeftExpression::template m_times_m<LeftExpression, RightExpression>::type>
+operator*(const Matrix<LeftExpression>& left, const Matrix<RightExpression>& right)
+{
+    #ifdef MINLIN_DEBUG
+    std::cout << "matrix matrix multiplication" << std::endl;
+    assert(left.cols() == right.rows());
+    #endif
+    typedef typename LeftExpression::template m_times_m<LeftExpression, RightExpression>::type expression_type;
+    // need to provide interface for m, n, k to be passed to expression_type
+    return make_matrix( expression_type(left.expression(), right.expression(), left.rows(), right.cols(), left.cols()),
+                        left.rows(), right.cols());
+}
+
 } // end namespace minlin
 
 #endif

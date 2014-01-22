@@ -872,6 +872,99 @@ struct MtimesV : public ExpressionType {
     const difference_type cols;
 };
 
+// Matrix-Matrix multiplication
+//***********************
+template<class LeftExpression, class RightExpression>
+struct MtimesM : public ExpressionType {
+
+    // tag as a level-3 operator
+    typedef int is_specialized;
+
+    typedef LeftExpression left_expression;
+    typedef RightExpression right_expression;
+
+    typedef typename left_expression::value_type value_type;
+    typedef typename left_expression::difference_type difference_type;
+    struct reference{};
+    typedef reference const_reference;
+    struct pointer{};
+    typedef pointer const_pointer;
+
+    // no iterator types
+    struct const_iterator{};
+    typedef const_iterator iterator;
+
+    // left is M*K matrix   A
+    // right is K*N matrix  B
+    // result is M*N matrix C
+    // this is consistent with blas naming scheme
+    //      C = alpha*A*B + beta*C
+    MtimesM(const left_expression& left,
+            const right_expression& right,
+            difference_type m,
+            difference_type n,
+            difference_type k,
+            value_type alpha=value_type(1))
+    :   left(left),
+        right(right),
+        m(m),
+        n(n),
+        k(k),
+        alpha(alpha)
+    {}
+
+    // no access operator[] or begin()/end()
+    difference_type size() const {
+        return m*n;
+    }
+
+    // helpers to determine whether data is on host or device
+    template <typename ptr_type>
+    struct is_device_data {
+        static const bool value = false;
+    };
+
+    template <typename T>
+    struct is_device_data<thrust::device_ptr<T> > {
+        static const bool value = true;
+    };
+
+    // apply matrix vector multiplication
+    template <typename LValue>
+    void apply(LValue &lhs, value_type beta=value_type(0)) const {
+        value_type *C = thrust::raw_pointer_cast( lhs.data() );
+        value_type const *A = thrust::raw_pointer_cast( left.data() );
+        value_type const *B = thrust::raw_pointer_cast( right.data() );
+
+        bool on_device = is_device_data<typename LValue::pointer>::value;
+        // check that data in the matrix and the two vectors are in the same memory space
+        // this should be extended to test that each expression also refers to concrete storage
+//#ifdef MINLIN_DEBUG
+        //assert(   is_device_data<typename left_expression::pointer>::value == on_device
+               //&& is_device_data<typename right_expression::pointer>::value == on_device
+               //&& is_device_data<typename LValue::pointer>::value == on_device);
+//#endif
+
+        int  lda=m;
+        int  ldb=k;
+        int  ldc=m;
+        char transa='N';
+        char transb='N';
+
+        if(on_device)
+            gemm_device (A, B, C, alpha, beta, int(m), int(n), int(k), lda, ldb, ldc, transa, transb);
+        else
+            gemm_host   (A, B, C, alpha, beta, int(m), int(n), int(k), lda, ldb, ldc, transa, transb);
+    }
+
+    const left_expression& left;
+    const right_expression& right;
+    const value_type alpha;
+    const difference_type m;
+    const difference_type n;
+    const difference_type k;
+};
+
 } // end namespace detail
 
 } // end namespace threx

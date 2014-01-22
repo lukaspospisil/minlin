@@ -359,6 +359,15 @@ struct VdoubleIndexRangeUnitStride :
         return dim;
     }
 
+    pointer data() {
+        return expression.data() + offset;
+    }
+
+    const pointer data() const {
+        return expression.data() + offset;
+    }
+
+
     expression_type& expression;
     difference_type ld;
     difference_type offset;

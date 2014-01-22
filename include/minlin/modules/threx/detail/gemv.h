@@ -48,6 +48,35 @@ bool gemv_host (
 }
 
 //////////////////////////////////////////////////////////////
+// wrapper for gemm call to MKL
+//////////////////////////////////////////////////////////////
+// overloaded for double
+bool gemm_host (
+    double const* A, double const* B, double* C,
+    double alpha, double beta,
+    int m, int n, int k,
+    int lda, int ldb, int ldc,
+    char transa, char transb)
+{
+    // FORTAN interface
+    //sgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
+    dgemm(&transa, &transb, &m, &n, &k, &alpha, const_cast<double*>(A), &lda, const_cast<double*>(B), &ldb, &beta, C, &ldc);
+    return true;
+}
+
+// overloaded for float
+bool gemm_host (
+    float const* A, float const* B, float* C,
+    float alpha, float beta,
+    int m, int n, int k,
+    int lda, int ldb, int ldc,
+    char transa, char transb)
+{
+    sgemm(&transa, &transb, &m, &n, &k, &alpha, const_cast<float*>(A), &lda, const_cast<float*>(B), &ldb, &beta, C, &ldc);
+    return true;
+}
+
+//////////////////////////////////////////////////////////////
 // wrapper for gemv call to cublas
 //////////////////////////////////////////////////////////////
 // overloaded for double
@@ -79,6 +108,46 @@ bool gemv_device (
         cublasSgemv(handle, opt, m, n, &alpha, const_cast<float*>(A), lda, const_cast<float*>(x), incx, &beta, y, incy);
     return (status == CUBLAS_STATUS_SUCCESS);
 }
+
+// overloaded for double
+bool gemm_device (
+    double const* A, double const* B, double* C,
+    double alpha, double beta,
+    int m, int n, int k,
+    int lda, int ldb, int ldc,
+    char transa, char transb)
+{
+    cublasHandle_t& handle = CublasState::instance()->handle();
+    cublasOperation_t optA = transa=='N' ? CUBLAS_OP_N : CUBLAS_OP_T;
+    cublasOperation_t optB = transb=='N' ? CUBLAS_OP_N : CUBLAS_OP_T;
+    cublasStatus_t status =
+    cublasDgemm( handle, optA, optB,
+                 m, n, k,
+                 &alpha, A, lda, B, ldb,
+                 &beta, C, ldc);
+    return (status == CUBLAS_STATUS_SUCCESS);
+}
+
+// overloaded for float
+bool gemm_device (
+    float const* A, float const* B, float* C,
+    float alpha, float beta,
+    int m, int n, int k,
+    int lda, int ldb, int ldc,
+    char transa, char transb)
+{
+    cublasHandle_t& handle = CublasState::instance()->handle();
+    cublasOperation_t optA = transa=='N' ? CUBLAS_OP_N : CUBLAS_OP_T;
+    cublasOperation_t optB = transb=='N' ? CUBLAS_OP_N : CUBLAS_OP_T;
+    cublasStatus_t status =
+    cublasSgemm( handle, optA, optB,
+                 m, n, k,
+                 &alpha, A, lda, B, ldb,
+                 &beta, C, ldc);
+    return (status == CUBLAS_STATUS_SUCCESS);
+}
+
+//////////////////////////////////////////////////////////////
 
 } //namespace detail
 } //namespace threx

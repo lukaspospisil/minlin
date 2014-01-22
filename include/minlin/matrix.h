@@ -95,6 +95,7 @@ public:
         :expression_(expression), rows_(m), cols_(n)
     {
         #ifdef MINLIN_DEBUG
+        std::cout << "new matrix with dims " << rows() << "*" << cols() << " and size " << size() << std::endl;
         assert(rows() * cols() == size());
         std::cout << "Matrix(const Expression&)" << std::endl;
         #endif

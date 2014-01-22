@@ -111,6 +111,11 @@ template<class Expresssion> class VdoubleIndexRangeUnitStride;
  ****************************/
 template<class Left, class Right> class MtimesV;
 
+/****************************
+ * BLAS level three operators *
+ ****************************/
+template<class Left, class Right> class MtimesM;
+
 // Map these types to the agreed-upon names so that minlin types can find them
 struct ExpressionType {
 
@@ -469,6 +474,13 @@ THREX_DEFINE_UNARY_OPERATOR_TYPE(tanh)
     template<class Mat, class Vec>
     struct m_times_v {
         typedef MtimesV<Mat, Vec> type;
+    };
+
+    // Matrix-Matrix operators
+    // matrix-matrix multiplication
+    template<class Left, class Right>
+    struct m_times_m {
+        typedef MtimesM<Left, Right> type;
     };
 };
 
