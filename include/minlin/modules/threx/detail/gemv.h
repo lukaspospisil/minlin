@@ -1,7 +1,10 @@
 #pragma once
 
 // blas routines for cuda and mkl
+#if THRUST_DEVICE_SYSTEM != THRUST_DEVICE_SYSTEM_OMP
 #include <cublas_v2.h>
+#endif
+
 #include <mkl.h>
 
 #include <string>
@@ -79,7 +82,21 @@ bool gemm_host (
 //////////////////////////////////////////////////////////////
 // wrapper for gemv call to cublas
 //////////////////////////////////////////////////////////////
-// overloaded for double
+#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP
+// call the host mkl back end, because the OpenMP implementation of the device back end is used
+bool gemv_device(float const* A, float const* x, float* y, float alpha, float beta, int m, int n, int incx, int incy, int lda, char trans) {
+    return gemv_host(A, x, y, alpha, beta, m, n, incx, incy, lda, trans);
+}
+bool gemv_device(double const* A, double const* x, double* y, double alpha, double beta, int m, int n, int incx, int incy, int lda, char trans) {
+    return gemv_host(A, x, y, alpha, beta, m, n, incx, incy, lda, trans);
+}
+bool gemm_device(float const* A, float const* B, float* C, float alpha, float beta, int m, int n, int k, int lda, int ldb, int ldc, char transa, char transb) {
+    return gemm_host(A,B, C, alpha, beta, m, n, k, lda, ldb, ldc, transa, transb);
+}
+bool gemm_device(double const* A, double const* B, double* C, double alpha, double beta, int m, int n, int k, int lda, int ldb, int ldc, char transa, char transb) {
+    return gemm_host(A,B, C, alpha, beta, m, n, k, lda, ldb, ldc, transa, transb);
+}
+#else
 bool gemv_device (
     double const* A, double const* x, double* y,
     double alpha, double beta,
@@ -146,6 +163,7 @@ bool gemm_device (
                  &beta, C, ldc);
     return (status == CUBLAS_STATUS_SUCCESS);
 }
+#endif
 
 //////////////////////////////////////////////////////////////
 

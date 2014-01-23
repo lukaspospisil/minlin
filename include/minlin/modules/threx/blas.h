@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cublas_v2.h>
+//#include <cublas_v2.h>
 
 namespace minlin {
 namespace threx {
@@ -8,6 +8,12 @@ namespace threx {
 /************************************************************************
  * singleton for cublas initialization
  ************************************************************************/
+// don't need if only using OMP backend everywhere
+
+#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP && THRUST_HOST_SYSTEM==THRUST_HOST_SYSTEM_OMP
+#define MINLIN_INIT
+#else
+
 class CublasState {
 public:
     static CublasState* instance();
@@ -37,6 +43,8 @@ CublasState* CublasState::instance() {                          \
     }                                                           \
     return instance_;                                           \
 }
+
+#endif
 
 }
 }
