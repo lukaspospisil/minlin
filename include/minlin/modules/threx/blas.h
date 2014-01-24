@@ -1,6 +1,5 @@
 #pragma once
 
-//#include <cublas_v2.h>
 
 namespace minlin {
 namespace threx {
@@ -13,6 +12,7 @@ namespace threx {
 #if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP && THRUST_HOST_SYSTEM==THRUST_HOST_SYSTEM_OMP
 #define MINLIN_INIT
 #else
+#include <cublas_v2.h>
 
 class CublasState {
 public:

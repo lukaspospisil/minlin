@@ -13,35 +13,6 @@ namespace minlin {
 namespace threx {
     
 namespace detail {
-/*
-template<typename T>
-struct cosVFunctor {
-    typedef T result_type;
-    typedef T value_type;
-    __host__ __device__
-    value_type operator()(value_type value) const
-    {
-        using std::cos;
-        return cos(value);
-    }
-};
-*/
-#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP || THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_CPP || THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_TBB
-
-#define THREX_DEFINE_UNARY_FUNCTOR(op) \
-template<typename T> \
-struct op##VFunctor { \
-    typedef T result_type; \
-    typedef T value_type; \
-    value_type operator()(value_type value) const \
-    { \
-        using std::op; \
-        return op(value); \
-    } \
-};
-
-#else
-
 #define THREX_DEFINE_UNARY_FUNCTOR(op) \
 template<typename T> \
 struct op##VFunctor { \
@@ -54,8 +25,6 @@ struct op##VFunctor { \
         return op(value); \
     } \
 };
-
-#endif
 
 THREX_DEFINE_UNARY_FUNCTOR(abs)
 THREX_DEFINE_UNARY_FUNCTOR(acos)
@@ -73,11 +42,6 @@ THREX_DEFINE_UNARY_FUNCTOR(sinh)
 THREX_DEFINE_UNARY_FUNCTOR(sqrt)
 THREX_DEFINE_UNARY_FUNCTOR(tan)
 THREX_DEFINE_UNARY_FUNCTOR(tanh)
-
-#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP || THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_CPP || THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_TBB
-#define __host__
-#define __device__
-#endif
 
 template<typename T>
 struct plusVFunctor {
@@ -116,11 +80,6 @@ struct powVFunctor {
         return pow(value, scalar);
     }
 };
-
-#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP || THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_CPP || THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_TBB
-#undef __host__
-#undef __device__
-#endif
 
 } // end namespace detail
 
