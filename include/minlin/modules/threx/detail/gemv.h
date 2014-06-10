@@ -2,6 +2,7 @@
 
 // blas routines for cuda and mkl
 #if THRUST_DEVICE_SYSTEM != THRUST_DEVICE_SYSTEM_OMP
+//#if THRUST_DEVICE_SYSTEM==THRUST_DEVICE_SYSTEM_OMP && THRUST_HOST_SYSTEM==THRUST_HOST_SYSTEM_OMP
 #include <cublas_v2.h>
 #endif
 
