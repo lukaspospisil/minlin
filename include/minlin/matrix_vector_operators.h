@@ -27,8 +27,9 @@ operator*(const Matrix<LeftExpression>& left, const Vector<RightExpression>& rig
 {
     #ifdef MINLIN_DEBUG
     std::cout << "matrix-vector multiplication" << std::endl;
-    assert(left.cols() == right.size()); // treat all vectors as a column vector
     #endif
+    std::cout << "matrix-vector multiplication" << std::endl;
+    assert(left.cols() == right.size()); // treat all vectors as a column vector
 
     typedef typename LeftExpression::template m_times_v<LeftExpression, RightExpression>::type expression_type;
     return make_vector(expression_type(left.expression(),right.expression(),left.rows(),left.cols()), right.orientation());

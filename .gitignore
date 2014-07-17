@@ -1,0 +1,13 @@
+blas/gemm
+blas/gemv
+
+nbproject
+
+*.swp
+*.swo
+*.swn
+
+*.o
+*.a
+*.exe
+*.sh

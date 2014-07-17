@@ -60,7 +60,7 @@ struct cosV : public ExpressionType {
         return cos(expression[i]);
     }
 
-	const expression_type& expression;
+    const expression_type& expression;
 };
 */
 
@@ -106,7 +106,7 @@ struct op##V : public ExpressionType { \
         return op(expression[i]); \
     } \
  \
-	const expression_type& expression; \
+    const expression_type& expression; \
 };
 
 THREX_DEFINE_UNARY_EXPRESSION(abs)
@@ -166,7 +166,7 @@ struct plusV : public ExpressionType {
         return +expression[i];
     }
 
-	const expression_type& expression;
+    const expression_type& expression;
 };
 
 template<class Expression>
@@ -209,7 +209,57 @@ struct minusV : public ExpressionType {
         return -expression[i];
     }
 
-	const expression_type& expression;
+    const expression_type& expression;
+};
+
+template<class Expression>
+struct transposeM : public ExpressionType {
+    // tag as specialized
+    //typedef int is_specialized;
+
+    typedef Expression expression_type;
+
+    typedef typename expression_type::value_type value_type;
+    typedef typename expression_type::difference_type difference_type;
+    struct  reference{};
+    typedef reference const_reference;
+
+    // make pointer types reflect the underlying storage of the matrix that
+    // is being transposed, because we need to pass that information through directly
+    // to the specialized implementations that require concrete data
+    typedef typename Expression::pointer pointer;
+    typedef typename Expression::const_pointer const_pointer;
+
+    // no iterator types
+    struct const_iterator{};
+    typedef const_iterator iterator;
+
+    explicit transposeM(const expression_type& expression) : expression(expression) {}
+
+    // the rows and cols are swapped for the transpose
+    difference_type rows() const {
+        return expression.cols();
+    }
+
+    difference_type cols() const {
+        return expression.rows();
+    }
+
+    difference_type size() const {
+        return expression.size();
+    }
+
+    // access to the underlying data
+    // the expression underneath a transpose must expose storage
+    pointer data() {
+        return expression.data();
+    }
+
+    const_pointer data() const {
+        return expression.data();
+    }
+
+    const expression_type& expression;
 };
 
 } // end namespace detail

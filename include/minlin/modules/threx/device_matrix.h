@@ -26,7 +26,7 @@ namespace threx {
 template<typename T>
 class DeviceMatrix
     : public Matrix<ByValue<thrust::device_vector<T> > > {
-public:        
+public:
     typedef Matrix<ByValue<thrust::device_vector<T> > > base;
 
     DeviceMatrix() : base() {}

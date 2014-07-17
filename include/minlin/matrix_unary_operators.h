@@ -59,21 +59,16 @@ operator-(const Matrix<Expression>& mat)
 {
     return make_matrix(-mat.expression(), mat.rows(), mat.cols());
 }
-/*
-template<class Expression>
-typename Expression::value_type
-norm(const Matrix<Expression>& mat)
-{
-    return norm(vec.expression());
-}
 
 template<class Expression>
-typename Expression::value_type
-norm(const Matrix<Expression>& vec, double p)
+Matrix<typename Expression::template transpose_m<Expression>::type>
+transpose(const Matrix<Expression>& mat)
 {
-    return norm(vec.expression(), p);
+    // swap mat.cols and mat.rows
+    typedef typename Expression::template transpose_m<Expression>::type expression_type;
+
+    return make_matrix(expression_type(mat.expression()), mat.cols(), mat.rows());
 }
-*/
 
 template<class Expression>
 typename Expression::difference_type

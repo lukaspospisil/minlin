@@ -20,19 +20,21 @@ MKLLIBS=-L$(MKLROOT)/lib/intel64 -lmkl_gnu_thread -lmkl_core -lmkl_rt
 CUDALIBS=-L$(CUDAROOT)/lib64 -lcublas
 LIBS=$(MKLLIBS) $(CUDALIBS)
 
-INCLUDE=-I../include -I$(MKLROOT)/include -I$(CUDAROOT)/include -I$(BOOSTROOT)
+INCLUDE=-I../include -I$(MKLROOT)/include -I$(CUDAROOT)/include -I$(BOOSTROOT) -I/opt/cray/mpt/7.0.1/gni/mpich2-GNU/49/include/
 
 NVCCFLAGS=-ccbin=$(GPP) --compiler-options -fopenmp
 
-ARGS=-DUSE_GPU
 ARGS=-DUSE_GPU -DMINLIN_DEBUG
+ARGS=-DUSE_GPU -g
 
 all: gemv gemm
 
-gemv: gemv.cu utilities.h
-	nvcc -arch=sm_35 gemv.cu -o gemv $(NVCCFLAGS) $(INCLUDE) $(LIBS) $(ARGS)
+gemv: gemv.cu gemv.cpp utilities.h
+#	nvcc -arch=sm_35 gemv.cu -o gemv $(NVCCFLAGS) $(INCLUDE) $(LIBS) $(ARGS)
+	nvcc -arch=sm_35 gemv.cu -c -o gemv.o $(NVCCFLAGS) $(INCLUDE) $(LIBS) $(ARGS)
+	CC gemv.o -o gemv $(INCLUDE) $(LIBS) $(ARGS) -fopenmp
 
-gemm: gemm.cu utilities.h
+gemm: gemm.cu gemm.cpp utilities.h
 	nvcc -arch=sm_35 gemm.cu -o gemm $(NVCCFLAGS) $(INCLUDE) $(LIBS) $(ARGS)
 
 clean :

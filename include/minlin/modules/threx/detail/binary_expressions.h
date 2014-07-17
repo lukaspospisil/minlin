@@ -38,7 +38,8 @@ struct SplusV : public ExpressionType {
     struct pointer{};
     typedef pointer const_pointer;
 
-    typedef ::thrust::transform_iterator<SplusVFunctor<value_type>, typename expression_type::const_iterator> const_iterator;
+    typedef ::thrust::transform_iterator< SplusVFunctor<value_type>,
+                                          typename expression_type::const_iterator> const_iterator;
     typedef const_iterator iterator;
 
     SplusV(value_type value, const expression_type& expression) : value(value), expression(expression) {}
@@ -848,21 +849,33 @@ struct MtimesV : public ExpressionType {
         bool on_device = is_device_data<typename LValue::pointer>::value;
         // check that data in the matrix and the two vectors are in the same memory space
         // this should be extended to test that each expression also refers to concrete storage
-#ifdef MINLIN_DEBUG
-        assert(   is_device_data<typename left_expression::pointer>::value == on_device
-               && is_device_data<typename right_expression::pointer>::value == on_device
-               && is_device_data<typename LValue::pointer>::value == on_device);
-#endif
+        #ifdef MINLIN_DEBUG
+        assert( is_device_data<typename left_expression::pointer>::value  == on_device );
+        assert( is_device_data<typename right_expression::pointer>::value == on_device );
+        assert( is_device_data<typename LValue::pointer>::value           == on_device );
+        #endif
 
         int  incy=lhs.stride();
         int  incx=right.stride();
-        int  lda=rows;
-        char trans='N';
+
+        // handle whether matrix has been transposed
+        // note that BLAS gemv requires rows, columns and lda be those of the original matrix atrix
+        const bool is_transposed = is_transposed_expression<LeftExpression>::value;
+        int rows_raw = rows;
+        int cols_raw = cols;
+        int lda=rows;
+        char trans = 'N';
+        // swich to underlying dimensions if matrix has been transposed
+        if(is_transposed) {
+            trans = 'T';
+            lda=cols;
+            std::swap(rows_raw, cols_raw);
+        }
 
         if(on_device)
-            gemv_device(A, x, y, alpha, beta, int(rows), int(cols), int(incx), int(incy), int(lda), trans);
+            gemv_device(A, x, y, alpha, beta, rows_raw, cols_raw, int(incx), int(incy), int(lda), trans);
         else
-            gemv_host(A, x, y, alpha, beta, int(rows), int(cols), int(incx), int(incy), int(lda), trans);
+            gemv_host(A, x, y, alpha, beta, rows_raw, cols_raw, int(incx), int(incy), int(lda), trans);
     }
 
     const left_expression& left;
@@ -939,17 +952,27 @@ struct MtimesM : public ExpressionType {
         bool on_device = is_device_data<typename LValue::pointer>::value;
         // check that data in the matrix and the two vectors are in the same memory space
         // this should be extended to test that each expression also refers to concrete storage
-//#ifdef MINLIN_DEBUG
-        //assert(   is_device_data<typename left_expression::pointer>::value == on_device
-               //&& is_device_data<typename right_expression::pointer>::value == on_device
-               //&& is_device_data<typename LValue::pointer>::value == on_device);
-//#endif
+        #ifdef MINLIN_DEBUG
+        assert( is_device_data<typename left_expression::pointer>::value == on_device );
+        assert( is_device_data<typename right_expression::pointer>::value == on_device );
+        assert( is_device_data<typename LValue::pointer>::value == on_device );
+        #endif
 
         int  lda=m;
         int  ldb=k;
         int  ldc=m;
-        char transa='N';
-        char transb='N';
+        char transa = 'N';
+        char transb = 'N';
+
+        // swap leading dimensions and trans? flags if left or right matrix is transposed
+        if( is_transposed_expression<LeftExpression>::value ) {
+            lda = k;
+            transa = 'T';
+        }
+        if( is_transposed_expression<RightExpression>::value ) {
+            ldb = n;
+            transb = 'T';
+        }
 
         if(on_device)
             gemm_device (A, B, C, alpha, beta, int(m), int(n), int(k), lda, ldb, ldc, transa, transb);

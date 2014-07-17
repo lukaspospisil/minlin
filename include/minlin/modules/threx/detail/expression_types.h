@@ -107,6 +107,11 @@ template<class Expression, class IndexExpression> class VindexI;
 template<class Expresssion> class VdoubleIndexRangeUnitStride;
 
 /****************************
+ * matrix unary             *
+ ****************************/
+template<class Expression> class transposeM;
+
+/****************************
  * BLAS level two operators *
  ****************************/
 template<class Left, class Right> class MtimesV;
@@ -469,6 +474,13 @@ THREX_DEFINE_UNARY_OPERATOR_TYPE(tanh)
         typedef VindexI<Expression, const IndexExpression> type;
     };
 
+    // matrix transpose
+    template<class Mat>
+    struct transpose_m {
+        typedef transposeM<Mat> type;
+    };
+
+
     // Matrix-Vector operators
     // matrix-vector multiplication
     template<class Mat, class Vec>
@@ -482,6 +494,17 @@ THREX_DEFINE_UNARY_OPERATOR_TYPE(tanh)
     struct m_times_m {
         typedef MtimesM<Left, Right> type;
     };
+};
+
+// helpers to determine whether an expression has been transposed
+template <typename Expression>
+struct is_transposed_expression {
+    static const bool value = false;
+};
+
+template <typename Expression>
+struct is_transposed_expression<transposeM<Expression> > {
+    static const bool value = true;
 };
 
 // Simple enabler/disabler for expression types
