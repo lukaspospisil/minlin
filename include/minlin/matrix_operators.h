@@ -11,5 +11,6 @@
 #include "matrix_n_ary_operators.h"
 #include "matrix_relational_operators.h"
 #include "matrix_logical_operators.h"
+#include "matrix_reduction_operators.h"
 
 #endif
