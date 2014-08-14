@@ -12,3 +12,5 @@ On going development work is working towards efficient implementations of Level-
 Originally developed by Timothy Moroney @ QUT, Brisbane, Australia.
 
 Currently maintained by Ben Cumming @ CSCS, Lugano, Switzerland. All communication about the library should be directed to Ben.
+
+See the LICENSE file for license information.
