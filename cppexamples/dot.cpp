@@ -20,6 +20,8 @@ int main() {
     HostVector<double> H(N);
     DeviceVector<double> D(N);
 
+    DeviceVector<int> I = range(1, 5);
+
     // initialize input vectors
     H(0) = 3;  D(0) = 6;
     H(1) = 4;  D(1) = 7;
@@ -30,17 +32,26 @@ int main() {
     std::cout << H << std::endl;
     
     std::cout << D << std::endl;
-    
-    D = H;
-    
-    std::cout << D << std::endl;
 
-//    D(all) = range(1,5);
+	std::cout << dot(H, H) << std::endl;
+	
+	std::cout << dot(D, D) << std::endl;
+
+	std::cout << norm(D) << std::endl;
+
+    std::cout << dot(I, I) << std::endl;
+
+    std::cout << norm(D, 1) << std::endl;
     
-    std::cout << range(1,5) << std::endl;
+    std::cout << norm(D, 2) << std::endl;
+
+    std::cout << norm(D, inf) << std::endl;
+
+    std::cout << norm(D, -inf) << std::endl;
+
+    std::cout << norm(D, 3) << std::endl;
     
- //   D(all) = 1;
-    
-    std::cout << D << std::endl;
+    std::cout << length(D) << std::endl;
     
 }
+

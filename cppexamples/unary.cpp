@@ -8,9 +8,9 @@
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
 
-#include <iostream>
-
 using namespace minlin::threx;
+
+#include <iostream>
 
 int main() {
 
@@ -30,17 +30,20 @@ int main() {
     std::cout << H << std::endl;
     
     std::cout << D << std::endl;
-    
-    D = H;
-    
-    std::cout << D << std::endl;
 
-//    D(all) = range(1,5);
+    std::cout << +H << std::endl;
+
+    std::cout << -D << std::endl;
+
+    std::cout << abs(cos(H)) << std::endl;
     
-    std::cout << range(1,5) << std::endl;
+    std::cout << DeviceVector<double>(cos(D)) << std::endl;
     
- //   D(all) = 1;
+    std::cout << DeviceVector<double>(abs(cos(D))) << std::endl;
+
+    std::cout << abs(DeviceVector<double>(cos(D))) << std::endl;
     
-    std::cout << D << std::endl;
+    std::cout << exp(sin(cos(abs(sqrt(log(cosh(tan(D)))))))) << std::endl;
     
 }
+

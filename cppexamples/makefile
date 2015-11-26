@@ -1,84 +1,82 @@
-all : assign 
-#assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
+# I assume that MKL is installed and added to LD_LIBRARY_PATH
+# in ubuntu: 
+# - create /etc/ld.so.conf.d/mkl.conf and add path to mkl libraries /opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin/
+# run sudo ldconfig
+
+all : assign assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
 # rand
 
-OMPICC=/usr/lib64/openmpi/bin/mpicc
+CC=g++ -fopenmp
 
-INCLUDE= -I/home/pospik/Dokumenty/soft/minlin/include
-INCLUDE+= -I/home/pospik/Dokumenty/soft/minlin/
-INCLUDE+= -I/usr/include/openmpi-x86_64/
-INCLUDE+= -I/opt/intel/compilers_and_libraries/linux/mkl/include/
-INCLUDE+= -I/home/pospik/Dokumenty/soft
-INCLUDE+= -L/usr/local/cuda-6.5/lib64 -lcudart -lcublas -lcusparse
-INCLUDE+= -L/home/pospik/Dokumenty/soft/minlin/blas/ -lgemv -lgemm
-INCLUDE+= -L/opt/intel/mkl/lib/intel64/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
-INCLUDE+= -L/usr/lib64/openmpi/lib -lmpi -lmpi_cxx -lompitrace -lmpi_usempi
+DIR_MINLIN=/home/lukas/soft/minlin
+DIR_THRUST=/home/lukas/soft
+DIR_MKL=/opt/intel/compilers_and_libraries/linux/mkl
 
-NVCCFLAGS=-ccbin=gcc --compiler-options -fopenmp
-#INCLUDE+= $(NVCCFLAGS)
+INCLUDE= -I$(DIR_MINLIN)/include
+INCLUDE+= -I$(DIR_MINLIN)
+INCLUDE+= -I$(DIR_MKL)/include/
+INCLUDE+= -I$(DIR_THRUST)
+LIBS+= -L$(DIR_MKL)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
 
-#INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CUDA -lgomp
-INCLUDE+=-DTHRUST_DEVICE_BACKEND=THRUST_DEVICE_BACKEND_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP -lgomp
-#INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA -DTHRUST_DEVICE_BACKEND=THRUST_DEVICE_BACKEND_CUDA -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CUDA -lgomp
-
+# this runs with only openmpi
+INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP -lgomp
 
 assign: assign.cpp
-	$(OMPICC) assign.cpp -o assign $(INCLUDE) -fopenmp
-#	nvcc -arch=sm_35 assign.cpp -o assign $(INCLUDE)
+	$(CC) $(INCLUDE) assign.cpp -o assign $(LIBS) 
 
-assign2: assign2.cu
-	nvcc -arch=sm_35 assign2.cu -o assign2 $(INCLUDE)
+assign2: assign2.cpp
+	$(CC) $(INCLUDE) assign2.cpp -o assign2 $(LIBS)
 
-binary: binary.cu
-	nvcc -arch=sm_35 binary.cu -o binary $(INCLUDE)
+binary: binary.cpp
+	$(CC) $(INCLUDE) binary.cpp -o binary $(LIBS) 
 
-binary2: binary2.cu
-	nvcc -arch=sm_35 binary2.cu -o binary2 $(INCLUDE)
+binary2: binary2.cpp
+	$(CC) $(INCLUDE) binary2.cpp -o binary2 $(LIBS) 
 
-copying: copying.cu
-	nvcc -arch=sm_35 copying.cu -o copying $(INCLUDE)
+copying: copying.cpp
+	$(CC) $(INCLUDE) copying.cpp -o copying $(LIBS) 
 
-dot: dot.cu
-	nvcc -arch=sm_35 dot.cu -o dot $(INCLUDE)
+dot: dot.cpp
+	$(CC) $(INCLUDE) dot.cpp -o dot $(LIBS) 
 
-expression: expression.cu
-	nvcc -arch=sm_35 expression.cu -o expression $(INCLUDE)
+expression: expression.cpp
+	$(CC) $(INCLUDE) expression.cpp -o expression $(LIBS) 
 
-index: index.cu
-	nvcc -arch=sm_35 index.cu -o index $(INCLUDE)
+index: index.cpp
+	$(CC) $(INCLUDE) index.cpp -o index $(LIBS) 
 
-inplace: inplace.cu
-	nvcc -arch=sm_35 inplace.cu -o inplace $(INCLUDE)
+inplace: inplace.cpp
+	$(CC) $(INCLUDE) inplace.cpp -o inplace $(LIBS) 
 
-logical: logical.cu
-	nvcc -arch=sm_35 logical.cu -o logical $(INCLUDE)
+logical: logical.cpp
+	$(CC) $(INCLUDE) logical.cpp -o logical $(LIBS) 
 
-matrix: matrix.cu
-	nvcc -arch=sm_35 matrix.cu -o matrix $(INCLUDE)
+matrix: matrix.cpp
+	$(CC) $(INCLUDE) matrix.cpp -o matrix $(LIBS) 
 
-mul: mul.cu
-	nvcc -arch=sm_35 mul.cu -o mul $(INCLUDE)
+mul: mul.cpp
+	$(CC) $(INCLUDE) mul.cpp -o mul $(LIBS) 
 
-rand: rand.cu
-	nvcc -arch=sm_35 rand.cu -o rand $(INCLUDE)
+rand: rand.cpp
+	$(CC) $(INCLUDE) rand.cpp -o rand $(LIBS) 
 
-range: range.cu
-	nvcc -arch=sm_35 range.cu -o range $(INCLUDE)
+range: range.cpp
+	$(CC) $(INCLUDE) range.cpp -o range $(LIBS) 
 
-range_check: range_check.cu
-	nvcc -arch=sm_35 range_check.cu -o range_check $(INCLUDE)
+range_check: range_check.cpp
+	$(CC) $(INCLUDE) range_check.cpp -o range_check $(LIBS) 
 
-storage: storage.cu
-	nvcc -arch=sm_35 storage.cu -o storage $(INCLUDE)
+storage: storage.cpp
+	$(CC) $(INCLUDE) storage.cpp -o storage $(LIBS) 
 
-submatrix: submatrix.cu
-	nvcc -arch=sm_35 submatrix.cu -o submatrix $(INCLUDE)
+submatrix: submatrix.cpp
+	$(CC) $(INCLUDE) submatrix.cpp -o submatrix $(LIBS) 
 
-unary: unary.cu
-	nvcc -arch=sm_35 unary.cu -o unary $(INCLUDE)
+unary: unary.cpp
+	$(CC) $(INCLUDE) unary.cpp -o unary $(LIBS) 
 
-vector_matrix: vector_matrix.cu
-	nvcc -arch=sm_35 vector_matrix.cu -o vector_matrix $(INCLUDE)
+vector_matrix: vector_matrix.cpp
+	$(CC) $(INCLUDE) vector_matrix.cpp -o vector_matrix $(LIBS) 
 
 clean :
 	rm -f assign assign2 binary binary2 copying dot expression index inplace logical matrix mul rand range range_check storage submatrix unary vector_matrix
