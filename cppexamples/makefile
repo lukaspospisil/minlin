@@ -2,6 +2,11 @@
 # in ubuntu: 
 # - create /etc/ld.so.conf.d/mkl.conf and add path to mkl libraries /opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin/
 # run sudo ldconfig
+#
+# I also need Thrust
+#
+# and boost: sudo apt-get install libboost-dev
+#
 
 all : assign assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
 # rand
