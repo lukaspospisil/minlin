@@ -1,20 +1,30 @@
-all : assign assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
+all : assign 
+#assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
 # rand
+
+OMPICC=/usr/lib64/openmpi/bin/mpicc
 
 INCLUDE= -I/home/pospik/Dokumenty/soft/minlin/include
 INCLUDE+= -I/home/pospik/Dokumenty/soft/minlin/
 INCLUDE+= -I/usr/include/openmpi-x86_64/
 INCLUDE+= -I/opt/intel/compilers_and_libraries/linux/mkl/include/
+INCLUDE+= -I/home/pospik/Dokumenty/soft
 INCLUDE+= -L/usr/local/cuda-6.5/lib64 -lcudart -lcublas -lcusparse
 INCLUDE+= -L/home/pospik/Dokumenty/soft/minlin/blas/ -lgemv -lgemm
 INCLUDE+= -L/opt/intel/mkl/lib/intel64/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
 INCLUDE+= -L/usr/lib64/openmpi/lib -lmpi -lmpi_cxx -lompitrace -lmpi_usempi
 
 NVCCFLAGS=-ccbin=gcc --compiler-options -fopenmp
-INCLUDE+= $(NVCCFLAGS)
+#INCLUDE+= $(NVCCFLAGS)
 
-assign: assign.cu
-	nvcc -arch=sm_35 assign.cu -o assign $(INCLUDE)
+#INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CUDA -lgomp
+INCLUDE+=-DTHRUST_DEVICE_BACKEND=THRUST_DEVICE_BACKEND_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP -lgomp
+#INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA -DTHRUST_DEVICE_BACKEND=THRUST_DEVICE_BACKEND_CUDA -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CUDA -lgomp
+
+
+assign: assign.cpp
+	$(OMPICC) assign.cpp -o assign $(INCLUDE) -fopenmp
+#	nvcc -arch=sm_35 assign.cpp -o assign $(INCLUDE)
 
 assign2: assign2.cu
 	nvcc -arch=sm_35 assign2.cu -o assign2 $(INCLUDE)
