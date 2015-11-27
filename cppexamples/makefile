@@ -13,15 +13,14 @@ all : assign assign2 binary binary2 copying dot expression index inplace logical
 
 CC=g++ -fopenmp
 
-DIR_MINLIN=/home/lukas/soft/minlin
-DIR_THRUST=/home/lukas/soft
-DIR_MKL=/opt/intel/compilers_and_libraries/linux/mkl
+MINLINROOT=/home/lukas/soft/minlin
+THRUSTROOT=/home/lukas/soft
+MKLROOT=/opt/intel/compilers_and_libraries/linux/mkl
 
-INCLUDE= -I$(DIR_MINLIN)/include
-INCLUDE+= -I$(DIR_MINLIN)
-INCLUDE+= -I$(DIR_MKL)/include/
-INCLUDE+= -I$(DIR_THRUST)
-LIBS+= -L$(DIR_MKL)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread -liomp5
+INCLUDE= -I$(MINLINROOT) -I$(MINLINROOT)/include
+INCLUDE+= -I$(MKLROOT)/include/
+INCLUDE+= -I$(THRUSTROOT)
+LIBS+= -L$(MKLROOT)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread -liomp5
 
 # this runs with only openmpi
 INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP

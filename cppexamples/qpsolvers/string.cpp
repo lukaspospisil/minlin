@@ -3,7 +3,7 @@ Solution of string problem
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
-#define MKL_DYNAMIC FALSE
+#define QPOPT_DEBUG
 
 #include <thrust/functional.h>
 
@@ -72,12 +72,12 @@ int main(int argc, char *argv[]) {
 	b = h*b;
 
 	/* print problem */
-	if(false){
+	#ifdef MINLIN_DEBUG
 		std::cout << "A:" << std::endl;
 		std::cout << A << std::endl << std::endl;
 		std::cout << "b:" << std::endl;
 		std::cout << b << std::endl << std::endl;
-	}
+	#endif
 
 	/* CG method */
 	HostVector<real> g(N); /* gradient */
@@ -118,8 +118,9 @@ int main(int argc, char *argv[]) {
 
 
 	/* print solution */
-    std::cout << "x:" << std::endl;
-    std::cout << x << std::endl << std::endl;
-
+	#ifdef MINLIN_DEBUG
+		std::cout << "x:" << std::endl;
+		std::cout << x << std::endl << std::endl;
+	#endif
 
 }
