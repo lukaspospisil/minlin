@@ -1,7 +1,9 @@
 # I assume that MKL is installed and added to LD_LIBRARY_PATH
 # in ubuntu: 
-# - create /etc/ld.so.conf.d/mkl.conf and add path to mkl libraries /opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin/
-# run sudo ldconfig
+# - create /etc/ld.so.conf.d/mkl.conf and add path to mkl libraries 
+# /opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin/
+# /opt/intel/compilers_and_libraries_2016.0.109/linux/compiler/lib/intel64_lin
+# - run sudo ldconfig
 #
 # I also need Thrust
 #
