@@ -1,5 +1,5 @@
 /*******************************************************************************
-Solution of string problem
+Solution of string problem with QPOPT library
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
