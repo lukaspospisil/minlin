@@ -22,10 +22,10 @@ INCLUDE= -I$(DIR_MINLIN)/include
 INCLUDE+= -I$(DIR_MINLIN)
 INCLUDE+= -I$(DIR_MKL)/include/
 INCLUDE+= -I$(DIR_THRUST)
-LIBS+= -L$(DIR_MKL)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
+LIBS+= -L$(DIR_MKL)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread -liomp5
 
 # this runs with only openmpi
-INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP -lgomp
+INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
 
 string: string.cpp
 	$(CC) $(INCLUDE) string.cpp -o string $(LIBS) 

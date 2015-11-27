@@ -8,7 +8,7 @@
 # and boost: sudo apt-get install libboost-dev
 #
 
-all : assign assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
+all : assign assign2 binary binary2 copying dot expression index inplace logical matrix matmult mul range range_check storage submatrix unary vector_matrix
 # rand
 
 CC=g++ -fopenmp
@@ -21,10 +21,10 @@ INCLUDE= -I$(DIR_MINLIN)/include
 INCLUDE+= -I$(DIR_MINLIN)
 INCLUDE+= -I$(DIR_MKL)/include/
 INCLUDE+= -I$(DIR_THRUST)
-LIBS+= -L$(DIR_MKL)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
+LIBS+= -L$(DIR_MKL)/lib/intel64_lin/ -lmkl_core -lmkl_rt -lmkl_gnu_thread -liomp5
 
 # this runs with only openmpi
-INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP -lgomp
+INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
 
 assign: assign.cpp
 	$(CC) $(INCLUDE) assign.cpp -o assign $(LIBS) 
@@ -59,6 +59,9 @@ logical: logical.cpp
 matrix: matrix.cpp
 	$(CC) $(INCLUDE) matrix.cpp -o matrix $(LIBS) 
 
+matmult: matmult.cpp
+	$(CC) $(INCLUDE) matmult.cpp -o matmult $(LIBS) 
+
 mul: mul.cpp
 	$(CC) $(INCLUDE) mul.cpp -o mul $(LIBS) 
 
@@ -84,5 +87,5 @@ vector_matrix: vector_matrix.cpp
 	$(CC) $(INCLUDE) vector_matrix.cpp -o vector_matrix $(LIBS) 
 
 clean :
-	rm -f assign assign2 binary binary2 copying dot expression index inplace logical matrix mul rand range range_check storage submatrix unary vector_matrix
+	rm -f assign assign2 binary binary2 copying dot expression index inplace logical matrix matmult mul rand range range_check storage submatrix unary vector_matrix
 
