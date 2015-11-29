@@ -7,15 +7,35 @@ lukas.pospisil@vsb.cz
 * based on algorithms from Zdenek Dostal (VSB-TU Ostrava)
 * created during HPCCausality project (USI Lugano - Illia Horenko, Patrick Gagliardini, Will Sawyer)
 *******************************************************************************/
+
+#ifndef QPOPT_H
+#define	QPOPT_H
+
 //#define MINLIN_DEBUG
 #define QPOPT_DEBUG
 
-#include <thrust/functional.h>
 #include <iostream>
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
 
+#include "minlin/vector.h"
+
+using namespace minlin::threx;
+
+template<class Expression>
+typename Expression::value_type
+
 class QPOpt {
+
 	public:
-		static solve_unconstrained();
+		static void solve_unconstrained(const minlin::threx::Vector<Expression>& x){
+			
+			std::cout << x << std::endl;
+		
+		}
 };
+
+
+
+
+#endif

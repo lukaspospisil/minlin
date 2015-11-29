@@ -12,6 +12,8 @@ Solution of string problem with QPOPT library
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
 
+#include <qpopt.h>
+
 
 using namespace minlin::threx;
 
@@ -122,5 +124,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "x:" << std::endl;
 		std::cout << x << std::endl << std::endl;
 	#endif
+
+	QPOpt::solve_unconstrained(x);
 
 }
