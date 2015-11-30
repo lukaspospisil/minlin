@@ -4,7 +4,8 @@ Solution of string problem with QPOPT library
 *******************************************************************************/
 //#define MINLIN_DEBUG
 #define QPOPT_DEBUG
-#define QPOPT_DEBUG2
+//#define QPOPT_DEBUG2
+#define QPOPT_DEBUG_F
 
 #include <thrust/functional.h>
 
@@ -26,6 +27,7 @@ int main(int argc, char *argv[]) {
     int NT = 1; /* number of threads */
 	real h = 1.0/(N-1); /* discretization */
 	real my_eps = 0.0001; /* precision */
+	real normA; /* norm of hessian matrix */
 
 	/* get NT,N from console */
 	if ( argc > 1 ){
@@ -43,6 +45,7 @@ int main(int argc, char *argv[]) {
     /* allocate storage */
     HostMatrix<real> A(N, N); /* Hessian matrix */
     HostVector<real> b(N); /* linear term */
+    HostVector<real> l(N); /* bound constraints */
 	HostVector<real> x(N); /* solution */
 
 	/* fill matrix */
@@ -73,6 +76,12 @@ int main(int argc, char *argv[]) {
 	/* scale to [0,1] */
 	A = (1.0/h)*A;
 	b = h*b;
+//	A = A;
+//	b = h*h*b;
+
+
+	/* bound constraints - nonpenetration */
+	l(minlin::all) = -0.25;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -80,14 +89,19 @@ int main(int argc, char *argv[]) {
 		std::cout << A << std::endl << std::endl;
 		std::cout << "b:" << std::endl;
 		std::cout << b << std::endl << std::endl;
+		std::cout << "l:" << std::endl;
+		std::cout << l << std::endl << std::endl;
 	#endif
 
-	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
+	normA = (1.0/h)*4.0;
+//	normA = 4.0;
+	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
+//	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
 
 	/* print solution */
-	#ifdef MINLIN_DEBUG
+//	#ifdef MINLIN_DEBUG
 		std::cout << "x:" << std::endl;
 		std::cout << x << std::endl << std::endl;
-	#endif
+//	#endif
 
 }

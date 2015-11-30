@@ -12,14 +12,14 @@
 # and boost: sudo apt-get install libboost-dev
 #
 
-all : string
+all : string_bound
 
 CC=g++ -fopenmp
 
 MINLINROOT=/home/lukas/soft/minlin
 THRUSTROOT=/home/lukas/soft
-MKLROOT=/opt/intel/compilers_and_libraries_2016.1.150/linux
-#MKLROOT=/opt/intel/compilers_and_libraries_2016.0.109/linux
+#MKLROOT=/opt/intel/compilers_and_libraries_2016.1.150/linux
+MKLROOT=/opt/intel/compilers_and_libraries_2016.0.109/linux
 
 INCLUDE= -I$(MINLINROOT) -I$(MINLINROOT)/include
 INCLUDE+= -I$(MKLROOT)/mkl/include
@@ -37,6 +37,9 @@ INCLUDE+=-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP  -DTHRUST_HOST_SYSTEM=T
 string: string.cpp
 	$(CC) $(INCLUDE) string.cpp -o string $(LIBS) 
 
+string_bound: string_bound.cpp
+	$(CC) $(INCLUDE) string_bound.cpp -o string_bound $(LIBS) 
+
 clean :
-	rm -f string
+	rm -f string string_bound
 
