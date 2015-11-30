@@ -10,6 +10,7 @@ Solution of string problem with QPOPT library
 #include <thrust/functional.h>
 
 #include <iostream>
+#include <fstream>
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
@@ -50,6 +51,7 @@ int main(int argc, char *argv[]) {
 
 	/* fill matrix */
     for (i = 0; i < N; i++) {
+        /* stiffness matrix */
         A(i,i) = 2.0;
         if(i>0){
 			A(i,i-1) = -1.0;
@@ -58,7 +60,15 @@ int main(int argc, char *argv[]) {
 			A(i,i+1) = -1.0;
 		}
 
-		b(i) = -15.0; /* force */
+		/* bound constraint - the obstacle */
+		if(i < 0.5*N){
+			l(i) = -0.5;
+		} else {
+			l(i) = -1.0;
+		}
+
+		/* force */
+		b(i) = -15; 
     }
 	A(0,0) = 1.0;
 	A(N-1,N-1) = 1.0;
@@ -74,14 +84,11 @@ int main(int argc, char *argv[]) {
 	b(N-1) = 0.0;
 
 	/* scale to [0,1] */
-	A = (1.0/h)*A;
+//	A = (1.0/h)*A;
 	b = h*b;
 //	A = A;
 //	b = h*h*b;
 
-
-	/* bound constraints - nonpenetration */
-	l(minlin::all) = -0.25;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -93,15 +100,50 @@ int main(int argc, char *argv[]) {
 		std::cout << l << std::endl << std::endl;
 	#endif
 
-	normA = (1.0/h)*4.0;
-//	normA = 4.0;
+//	normA = (1.0/h)*4.0;
+	normA = 4.0;
 	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
 //	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
 
-	/* print solution */
-//	#ifdef MINLIN_DEBUG
-		std::cout << "x:" << std::endl;
-		std::cout << x << std::endl << std::endl;
-//	#endif
 
+	/* save solution */
+	char name_of_file[256];					/* the name of output VTK file */
+
+	sprintf(name_of_file, "output_bound_%dt.vtk",NT);
+
+	std::ofstream myfile;
+	myfile.open(name_of_file);
+	myfile << "# vtk DataFile Version 3.1" << std::endl;
+	myfile << "this is the solution of our problem" << std::endl;
+	myfile << "ASCII" << std::endl;
+	myfile << "DATASET POLYDATA" << std::endl;
+
+	/* points - coordinates */
+	myfile << "POINTS " << N << " FLOAT" << std::endl;
+	for(i=0;i < N;i++){
+		myfile << i*h << " " << x(i) << " 0.0" << std::endl;
+	}
+	
+	/* line solution */
+	myfile << "LINES 1 " << N+1 << std::endl;
+	myfile << N << " ";
+	for(i=0;i < N;i++){
+		myfile << i << " ";
+	}
+	myfile << std::endl;
+	
+	/* values is points */
+	myfile << "POINT_DATA " << N  << std::endl;
+	myfile << "SCALARS solution float 1"  << std::endl;
+	myfile << "LOOKUP_TABLE default"  << std::endl;
+	for(i=0;i < N;i++){
+//		myfile << x(i) << std::endl;
+		myfile << 1.0 << std::endl;
+	}
+
+
+
+	myfile.close();
+
+	return 0;
 }

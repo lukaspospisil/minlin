@@ -18,8 +18,8 @@ CC=g++ -fopenmp
 
 MINLINROOT=/home/lukas/soft/minlin
 THRUSTROOT=/home/lukas/soft
-#MKLROOT=/opt/intel/compilers_and_libraries_2016.1.150/linux
-MKLROOT=/opt/intel/compilers_and_libraries_2016.0.109/linux
+MKLROOT=/opt/intel/compilers_and_libraries_2016.1.150/linux
+#MKLROOT=/opt/intel/compilers_and_libraries_2016.0.109/linux
 
 INCLUDE= -I$(MINLINROOT) -I$(MINLINROOT)/include
 INCLUDE+= -I$(MKLROOT)/mkl/include
