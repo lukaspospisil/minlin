@@ -166,7 +166,6 @@ namespace QPOpt {
 		Vector<Expression> gp; /* projected gradient */
 		Vector<Expression> fi; /* free gradient */
 		Vector<Expression> beta; /* beta gradient */
-		Vector<Expression> y; /* x_k+.5 */
 		Vector<Expression> Ap; /* A*p */
 		int it = 0; /* iteration counter */
 		int hess_mult = 0; /* number of hessian multiplications */
@@ -237,14 +236,11 @@ namespace QPOpt {
 
 					x -= alpha_f*p;
 					g -= alpha_f*Ap;
-//					g = A*x; g -= b; hess_mult += 1;
 					
-					fi = compute_fi(x, g, l);
+					beta = x; // temp use
+					beta -= alpha_bar*g; 
 					
-					y = x; // temp use
-					y -= alpha_bar*fi; 
-					
-					x = project_bound(y,l);
+					x = project_bound(beta,l);
 					
 					g = A*x; g -= b; hess_mult += 1;
 					fi = compute_fi(x, g, l);
@@ -312,6 +308,88 @@ namespace QPOpt {
 		return solve_bound(A, normA, b, l, x0, my_eps);
 	}
 	
+	/* with equality and bound constraints */
+	template<typename Expression>
+	Vector<Expression> solve_eqbound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double norm BTB, Vector<Expression> x0, double my_eps){
+		Vector<Expression> x = x0;
+
+		/* SMALBE method */
+		double rho = 5*normA;
+		double M = 1.0;
+		double beta = 2.0;
+
+		Vector<Expression> x_old = x;
+		Vector<Expression> Ax;
+		double xAx,xTb,lambdaBx,xBBX;
+		double f,L,L_old;
+		
+		Vector<Expression> lambda(B.rows()); /* lagrange multipliers of equality constraints */
+		lambda(minlin:all) = 0.0;
+		Vector<Expression> lambda_old;
+
+
+		Vector<Expression> Bx; /* B*x - feasibility */
+		double norm_Bx;
+		
+		//[x it_mprgp nmb_hess_mult_mprgp gp_out gp_norms err_norms] = solve_inner(A + rho*B'*B, (b - B'*lambda),l,B,rho,M,eta,x0, smalse_opt, x_sol);
+		
+		Bx = B*x;
+		norm_Bx = norm(Bx);
+		
+		/* main cycle */
+		while((norm_Bx > my_eps || norm_gp > my_eps) && it < 1000){
+			x_old = x;
+			lambda_old = lambda;
+			
+			
+			/* update lagrange multipliers (Uzawa) */
+			Bx = B*x;
+			lambda += rho*Bx;
+
+			/* update M */
+			Lold = L;
+			Lold += rho*0.5*dot(Bx,Bx);
+			
+			/* compute function value */
+			Ax = A*x;
+			xAx = dot(Ap,x);
+			xTb = dot(b,x);
+			f = 0.5*xAx - xTb;			
+			lambdaBx = dot(lambda,Bx);
+			xBBx = dot(Bx,Bx);
+			norm_Bx = std::sqrt(xBBx);
+
+			/* compute lagrangian */
+			L = f + xBBx + rho*0.5*dot(Bx,Bx); // TODO: rho*0.5*dot(Bx,Bx) could be eliminated
+			
+			if (it > 0 && L < L_old){
+				M = M/beta; 
+			}
+
+
+			gp = fi + beta;
+			norm_gp = norm(gp);
+
+			#ifdef QPOPT_DEBUG
+				std::cout << "it " << it << ": ";
+				std::cout << "f = " << f << ", ||gP|| = " << normgp << ", ||Bx|| = " << norm_Bx << std::endl;
+			#endif	
+			
+			it += 1;
+		}
+		
+		return x;
+	}
+
+	/* equality and bound constrained without initial approximation, init approximation = 0 */
+	template<typename Expression>
+	Vector<Expression> solve_eqbound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, double my_eps){
+		Vector<Expression> x0 = b;
+		x0(minlin::all) = 0.0; /* default initial approximation */  
+
+		return solve_eqbound(A, normA, b, l, B, normBTB, x0, my_eps);
+	}
+
 
 
 }

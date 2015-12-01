@@ -1,0 +1,30 @@
+# vtk DataFile Version 3.1
+this is the solution of our problem
+ASCII
+DATASET POLYDATA
+POINTS 10 FLOAT
+0 0 0.0
+0.111111 0 0.0
+0.222222 0 0.0
+0.333333 0 0.0
+0.444444 0 0.0
+0.555556 0 0.0
+0.666667 0 0.0
+0.777778 0 0.0
+0.888889 0 0.0
+1 0 0.0
+LINES 1 11
+10 0 1 2 3 4 5 6 7 8 9 
+POINT_DATA 10
+SCALARS solution float 1
+LOOKUP_TABLE default
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1

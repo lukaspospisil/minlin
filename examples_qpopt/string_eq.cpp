@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
     HostVector<real> b(N); /* linear term */
     HostVector<real> l(N); /* bound constraints */
 	HostVector<real> x(N); /* solution */
+    HostMatrix<real> B(2, N); /* equality constraints */
 
 	/* fill matrix */
     for (i = 0; i < N; i++) {
@@ -74,14 +75,8 @@ int main(int argc, char *argv[]) {
 //	A(N-1,N-1) = 1.0;
 
 	/* Dirichlet boundary condition */
-	A(0,0) = 1.0;
-	A(N-1,N-1) = 1.0;
-	A(0,1) = 0.0;
-	A(1,0) = 0.0;
-	A(N-1,N-2) = 0.0;
-	A(N-2,N-1) = 0.0;
-	b(0) = 0.0;
-	b(N-1) = 0.0;
+	B(0,0) = 1.0;
+	B(1,N-1) = 1.0;
 
 	/* scale to [0,1] */
 	A = (1.0/h)*A;
@@ -98,13 +93,16 @@ int main(int argc, char *argv[]) {
 		std::cout << b << std::endl << std::endl;
 		std::cout << "l:" << std::endl;
 		std::cout << l << std::endl << std::endl;
+		std::cout << "B:" << std::endl;
+		std::cout << B << std::endl << std::endl;
 	#endif
 
 //	normA = (1.0/h)*4.0;
 
 	normA = (1.0/h)*4.0;
-	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
+//	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
 //	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
+	x = minlin::QPOpt::solve_eqbound(A,normA,b,l,B,normBTB,my_eps);
 
 
 	/* save solution */
