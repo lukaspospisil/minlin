@@ -3,9 +3,9 @@ Solution of string problem with QPOPT library
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
-#define QPOPT_DEBUG
+//#define QPOPT_DEBUG
 //#define QPOPT_DEBUG2
-#define QPOPT_DEBUG_F
+//#define QPOPT_DEBUG_F
 
 #include <thrust/functional.h>
 
@@ -15,8 +15,7 @@ Solution of string problem with QPOPT library
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
 
-#include <qpopt.h>
-
+#include "qpopt.h"
 
 using namespace minlin::threx;
 
@@ -64,27 +63,22 @@ int main(int argc, char *argv[]) {
 
 		/* bound constraint - the obstacle */
 		if(i < 0.5*N){
-			l(i) = -0.5;
+			l(i) = -0.3;
 		} else {
-			l(i) = -0.7;
+			l(i) = -0.5;
 		}
 
 		/* force */
-		b(i) = -15; 
+		b(i) = -5.0; 
     }
-//	A(0,0) = 1.0;
-//	A(N-1,N-1) = 1.0;
 
 	/* Dirichlet boundary condition */
 	B(0,0) = 1.0;
 	B(1,N-1) = 1.0;
 
 	/* scale to [0,1] */
-	A = (1.0/h)*A;
+	A = (1/h)*A;
 	b = h*b;
-//	A = A;
-//	b = h*h*b;
-
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -98,19 +92,18 @@ int main(int argc, char *argv[]) {
 		std::cout << B << std::endl << std::endl;
 	#endif
 
-//	normA = (1.0/h)*4.0;
+	minlin::QPOpt::QPSettings settings;
+	minlin::QPOpt::QPSettings_default(&settings);
 
-	normA = (1.0/h)*4.0;
-	normBTB = 1.0;
-//	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
-//	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
-	int it;
-	x = minlin::QPOpt::solve_eqbound(&it, A,normA,b,l,B,normBTB,my_eps);
+	settings.norm_A = (1.0/h)*4.0;
+	settings.norm_BTB = 1.0;
+
+	minlin::QPOpt::QPSettings_starttimer(&settings);
+	x = minlin::QPOpt::solve_eqbound(&settings, A, b,l,B);
+	minlin::QPOpt::QPSettings_stoptimer(&settings);
 
 	/* print info about algorithm performace */
-	std::cout << "-----------------------------------" << std::endl;
-	std::cout << " SMALBE it = " << it << std::endl;
-
+	minlin::QPOpt::QPSettings_print(settings);
 
 	/* save solution */
 	char name_of_file[256];					/* the name of output VTK file */

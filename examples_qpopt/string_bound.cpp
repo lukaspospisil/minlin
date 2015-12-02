@@ -3,9 +3,9 @@ Solution of string problem with QPOPT library
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
-#define QPOPT_DEBUG
+//#define QPOPT_DEBUG
 //#define QPOPT_DEBUG2
-#define QPOPT_DEBUG_F
+//#define QPOPT_DEBUG_F
 
 #include <thrust/functional.h>
 
@@ -27,8 +27,6 @@ int main(int argc, char *argv[]) {
     int N = 10; /* number of nodes - dimension of problem */
     int NT = 1; /* number of threads */
 	real h = 1.0/(N-1); /* discretization */
-	real my_eps = 0.001; /* precision */
-	real normA; /* norm of hessian matrix */
 
 	/* get NT,N from console */
 	if ( argc > 1 ){
@@ -62,16 +60,14 @@ int main(int argc, char *argv[]) {
 
 		/* bound constraint - the obstacle */
 		if(i < 0.5*N){
-			l(i) = -0.5;
+			l(i) = -0.3;
 		} else {
-			l(i) = -0.7;
+			l(i) = -0.5;
 		}
 
 		/* force */
-		b(i) = -15; 
+		b(i) = -5.0; 
     }
-//	A(0,0) = 1.0;
-//	A(N-1,N-1) = 1.0;
 
 	/* Dirichlet boundary condition */
 	A(0,0) = 1.0;
@@ -86,9 +82,6 @@ int main(int argc, char *argv[]) {
 	/* scale to [0,1] */
 	A = (1.0/h)*A;
 	b = h*b;
-//	A = A;
-//	b = h*h*b;
-
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -100,11 +93,20 @@ int main(int argc, char *argv[]) {
 		std::cout << l << std::endl << std::endl;
 	#endif
 
-//	normA = (1.0/h)*4.0;
 
-	normA = (1.0/h)*4.0;
-	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
-//	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
+	minlin::QPOpt::QPSettings settings;
+	minlin::QPOpt::QPSettings_default(&settings);
+
+	settings.norm_A = (1.0/h)*4.0;
+
+	minlin::QPOpt::QPSettings_starttimer(&settings);
+	x = minlin::QPOpt::solve_bound(&settings,A,b,l);
+	minlin::QPOpt::QPSettings_stoptimer(&settings);
+
+	/* print info about algorithm performace */
+	minlin::QPOpt::QPSettings_print(settings);
+
+	
 
 
 	/* save solution */

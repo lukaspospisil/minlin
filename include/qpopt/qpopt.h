@@ -17,6 +17,7 @@ lukas.pospisil@vsb.cz
 
 #include "minlin/vector.h"
 #include "minlin/matrix.h"
+#include "qpopt/settings.h"
 
 using namespace minlin::threx;
 
@@ -102,7 +103,9 @@ namespace QPOpt {
 
 	/* unconstrained with initial approximation */
 	template<typename Expression>
-	Vector<Expression> solve_unconstrained(Matrix<Expression> A, Vector<Expression> b, Vector<Expression> x0, double my_eps){
+	Vector<Expression> solve_unconstrained(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> x0){
+		settings->cg = true;
+
 		Vector<Expression> x = x0;
 
 		/* CG method */
@@ -118,7 +121,7 @@ namespace QPOpt {
 		normb = norm(b);
 		gg = dot(g,g);
 		normg = std::sqrt(gg);
-		while(normg > my_eps*normb && it < 10000){
+		while(normg > settings->my_eps && it < 10000){
 			/* compute new approximation */
 			Ap = A*p;
 			pAp = dot(Ap,p);
@@ -136,28 +139,34 @@ namespace QPOpt {
 			p += g;
 		
 			#ifdef QPOPT_DEBUG
-				std::cout << "it " << it << ": ||g|| = " << normg << ", ||g||/||b|| = " << normg/normb << std::endl;
+				std::cout << "it " << it << ": ||g|| = " << normg << std::endl;
 			#endif	
 				
 			it += 1;
 
 		}
 		
+		/* set oputput */
+		settings->it_cg = it; 
+		settings->norm_g = normg; 
+		
 		return x;
 	}
 
 	/* unconstrained without initial approximation, init approximation = 0 */
 	template<typename Expression>
-	Vector<Expression> solve_unconstrained(Matrix<Expression> A, Vector<Expression> b, double my_eps){
+	Vector<Expression> solve_unconstrained(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b){
 		Vector<Expression> x0 = b;
 		x0(minlin::all) = 0.0; /* default initial approximation */  
 
-		return solve_unconstrained(A, b, x0, my_eps);
+		return solve_unconstrained(settings, A, b, x0);
 	}
 
 	/* with bound constraints */
 	template<typename Expression>
-	Vector<Expression> solve_bound_smalbe(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0, double my_eps, bool smalbe, Matrix<Expression> B, double rho, double M){
+	Vector<Expression> solve_bound_smalbe(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0, Matrix<Expression> B, double rho, double M){
+		settings->mprgp = true;
+
 		Vector<Expression> x = x0;
 
 		/* MPRGP method */
@@ -170,13 +179,19 @@ namespace QPOpt {
 		int it = 0; /* iteration counter */
 		int hess_mult = 0; /* number of hessian multiplications */
 
-		double normb, normgp, f;
+		double normgp, f;
 		double betaTbeta, fiTfi, gTp, pAp, fiAp;
 		double alpha_cg, alpha_f, betaa;
+		double normA;
+		
+		if(settings->smalbe){
+			normA = settings->norm_A + rho*settings->norm_BTB;
+		} else {
+			normA = settings->norm_A;
+		}
 
 		/* algorithm parameters */
-		double Gamma = 1.0;
-		double eta = 1.0;
+		double Gamma = settings->Gamma;
 		double alpha_bar = 1.9/normA; /* 0 < alpha_bar <= 2*norm(A) */
 
 		/* project initial approximation to feasible set */
@@ -192,26 +207,25 @@ namespace QPOpt {
 		/* set first orthogonal vector */
 		p = fi;
 
-		normb = norm(b);
 		fiTfi = dot(fi,fi);
 		betaTbeta = dot(beta,beta);
 
 		bool solved = false;
-		double normBx;
 		Vector<Expression> Bx; /* B*x */
 		double norm_Bx;
+
 		/* compute stopping criteria */
-		if(smalbe){
+		if(settings->smalbe){
 			Bx = B*x;
 			norm_Bx = norm(Bx);
-			solved = (normgp > std::max(my_eps,std::min(norm_Bx,eta)));
+//			solved = (normgp > std::max(settings->my_eps,std::min(norm_Bx,settings->eta)));
+			solved = (normgp > std::min(norm_Bx,settings->eta));
 		} else {
-//			solved = (normgp > my_eps*normb);
-			solved = (normgp > my_eps);
+			solved = (normgp > settings->my_eps);
 		}	
 
 		/* main cycle */
-		while(solved && it < 10000){
+		while(solved && it < settings->maxit){
 			if(betaTbeta <= Gamma*Gamma*fiTfi){
 				/* 1. Proportional x_k. Trial conjugate gradient step */
 				Ap = A*p; hess_mult += 1;
@@ -279,8 +293,7 @@ namespace QPOpt {
 				#endif	
 				
 				x -= alpha_cg*beta;
-				g = A*x; g -= b; hess_mult += 1;
-//				g -= alpha_cg*Ap;
+				g -= alpha_cg*Ap;
 				
 				fi = compute_fi(x, g, l);
 				beta = compute_beta(x, g, l);
@@ -296,12 +309,12 @@ namespace QPOpt {
 			normgp = norm(gp);
 			
 			/* update stopping criteria */
-			if(smalbe){
+			if(settings->smalbe){
 				Bx = B*x;
 				norm_Bx = norm(Bx);
-				solved = (normgp > std::max(my_eps,std::min(norm_Bx,eta)));
+				solved = (normgp > std::max(settings->my_eps,std::min(norm_Bx,settings->eta)));
 			} else {
-				solved = (normgp > my_eps*normb);
+				solved = (normgp > settings->my_eps);
 			}	
 
 			#ifdef QPOPT_DEBUG
@@ -314,58 +327,62 @@ namespace QPOpt {
 					f = 0.5*pAp - gTp;
 					std::cout << "f = " << f << ", ";	
 				#endif 
-				std::cout << "||gP|| = " << normgp << ", ||gP||/||b|| = " << normgp/normb << ",  ||fi|| = " << std::sqrt(fiTfi) << ",  ||beta|| = " << std::sqrt(betaTbeta) << std::endl;
+				std::cout << "||gP|| = " << normgp << ", ||fi|| = " << std::sqrt(fiTfi) << ", ||beta|| = " << std::sqrt(betaTbeta) << std::endl;
 			#endif	
 			
 			it += 1;
 		}
-		
+
+		/* set output values */
+		settings->it_mprgp = it;
+		settings->norm_gp = normgp;
+		settings->hess_mult = hess_mult;
+
 		return x;
 	}
 
 	/* with bound constraints */
 	template<typename Expression>
-	Vector<Expression> solve_bound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0, double my_eps){
-		return solve_bound_smalbe(A, normA, b, l, x0, my_eps, false, A, 0.0, 0.0);
+	Vector<Expression> solve_bound(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0){
+		settings->smalbe = false;
+		
+		return solve_bound_smalbe(settings, A, b, l, x0, A, 0.0, 0.0);
 
 	}
 
 	/* bound constrained without initial approximation, init approximation = 0 */
 	template<typename Expression>
-	Vector<Expression> solve_bound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, double my_eps){
+	Vector<Expression> solve_bound(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> l){
 		Vector<Expression> x0 = b;
 		x0(minlin::all) = 0.0; /* default initial approximation */  
-
-		return solve_bound(A, normA, b, l, x0, my_eps);
+		return solve_bound(settings, A, b, l, x0);
 	}
 	
 	/* with equality and bound constraints */
 	template<typename Expression>
-	Vector<Expression> solve_eqbound(int *it_out, Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, Vector<Expression> x0, double my_eps){
+	Vector<Expression> solve_eqbound(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, Vector<Expression> x0){
 		Vector<Expression> x = x0;
 
 		/* SMALBE method */
+		settings->smalbe = true;
+		
 		int it = 1;
-		double rho = 5*normA;
-		double M = 1.0;
-		double betaM = 2.0;
+		int it_mprgp_all = 0;
+		int hess_mult_all = 0;
+		double rho = settings->rho_coeff*settings->norm_A;
+		double M = settings->M0;
+		double betaM = settings->betaM;
 
-		Vector<Expression> x_old = x;
 		Vector<Expression> Ax;
 		Matrix<Expression> ArhoBTB;
 		Matrix<Expression> BT(B.cols(),B.rows());
 		Vector<Expression> binner;
-		Vector<Expression> g;
-		Vector<Expression> fi;
-		Vector<Expression> beta;
-		Vector<Expression> gp;
 
 		double xAx,xTb,lambdaBx,xBBx;
 		double f,L,L_old;
 		
 		Vector<Expression> lambda(B.rows()); /* lagrange multipliers of equality constraints */
 		lambda(minlin::all) = 0.0;
-		Vector<Expression> lambda_old;
 
 		//BT = transpose(B); // TODO: this is not working, I dont know why :(
 		for(int i=0; i < BT.rows(); i++){
@@ -384,36 +401,37 @@ namespace QPOpt {
 		binner = BT*lambda;
 		binner = (-1)*binner;
 		binner += b;
-		x = solve_bound_smalbe(ArhoBTB, normA + normBTB, binner, l, x, my_eps, true, B, rho, M);
-
+		x = solve_bound_smalbe(settings, ArhoBTB, binner, l, x, B, rho, M);
+		it_mprgp_all += settings->it_mprgp;
+		hess_mult_all += settings->hess_mult;
 
 		/* compute gp */
-		g = ArhoBTB*x; g -= binner;
-		fi = compute_fi(x, g, l);
-		beta = compute_beta(x, g, l);
-		gp = fi + beta;
-		norm_gp = norm(gp);
+		norm_gp = settings->norm_gp;
 		
 		Bx = B*x;
 		norm_Bx = norm(Bx);
+
+		/* compute original function value */
+		Ax = A*x;
+		xAx = dot(Ax,x);
+		xTb = dot(b,x);
+		f = 0.5*xAx - xTb;			
+		/* compute lagrangian */
+		L = f + rho*0.5*dot(Bx,Bx);
 		
 		/* main cycle */
-		while((norm_Bx > my_eps || norm_gp > my_eps) && it < 1000){
-			x_old = x;
-			lambda_old = lambda;
+		while((norm_Bx > settings->my_eps || norm_gp > settings->my_eps) && it < 1000){
 			
 			/* solve inner problem */
 			binner = BT*lambda;
 			binner = (-1)*binner;
 			binner += b;
-			x = solve_bound_smalbe(ArhoBTB, normA + normBTB, binner, l, x, my_eps, true, B, rho, M);
-
+			x = solve_bound_smalbe(settings,ArhoBTB, binner, l, x, B, rho, M);
+			it_mprgp_all += settings->it_mprgp;
+			hess_mult_all += settings->hess_mult;
+		
 			/* compute gp */
-			g = ArhoBTB*x; g -= binner;
-			fi = compute_fi(x, g, l);
-			beta = compute_beta(x, g, l);
-			gp = fi + beta;
-			norm_gp = norm(gp);			
+			norm_gp = settings->norm_gp;			
 			
 			/* update lagrange multipliers (Uzawa) */
 			Bx = B*x;
@@ -429,10 +447,10 @@ namespace QPOpt {
 			norm_Bx = std::sqrt(xBBx);
 
 			/* compute lagrangian */
-			L = f + xBBx + rho*0.5*dot(Bx,Bx); // TODO: rho*0.5*dot(Bx,Bx) could be eliminated
+			L_old = L;
+			L = f + lambdaBx + rho*0.5*dot(Bx,Bx); // TODO: rho*0.5*dot(Bx,Bx) could be eliminated
 			
 			/* update M */
-			L_old = L;
 			if (it > 0 && L < L_old + rho*0.5*xBBx){
 				M = M/betaM; 
 			}
@@ -447,18 +465,21 @@ namespace QPOpt {
 		}
 		
 		/* set return values */
-		*it_out = it;
+		settings->it_smalbe = it;
+		settings->it_mprgp = it_mprgp_all;
+		settings->hess_mult = hess_mult_all;
+		settings->norm_Bx = norm_Bx;	
 				
 		return x;
 	}
 
 	/* equality and bound constrained without initial approximation, init approximation = 0 */
 	template<typename Expression>
-	Vector<Expression> solve_eqbound(int *it_out, Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, double my_eps){
+	Vector<Expression> solve_eqbound(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B){
 		Vector<Expression> x0 = b;
 		x0(minlin::all) = 0.0; /* default initial approximation */  
 
-		return solve_eqbound(it_out, A, normA, b, l, B, normBTB, x0, my_eps);
+		return solve_eqbound(settings, A, b, l, B, x0);
 	}
 
 

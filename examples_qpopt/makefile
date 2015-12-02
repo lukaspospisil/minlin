@@ -12,7 +12,7 @@
 # and boost: sudo apt-get install libboost-dev
 #
 
-all : string_eq
+all : string string_bound string_eq
 
 CC=g++ -fopenmp
 

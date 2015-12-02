@@ -3,8 +3,8 @@ Solution of string problem with QPOPT library
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
-#define QPOPT_DEBUG
-#define QPOPT_DEBUG2
+//#define QPOPT_DEBUG
+//#define QPOPT_DEBUG2
 
 #include <thrust/functional.h>
 
@@ -82,7 +82,15 @@ int main(int argc, char *argv[]) {
 		std::cout << b << std::endl << std::endl;
 	#endif
 
-	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
+	minlin::QPOpt::QPSettings settings;
+	minlin::QPOpt::QPSettings_default(&settings);
+
+	minlin::QPOpt::QPSettings_starttimer(&settings);
+	x = minlin::QPOpt::solve_unconstrained(&settings,A,b);
+	minlin::QPOpt::QPSettings_stoptimer(&settings);
+
+	/* print info about algorithm performace */
+	minlin::QPOpt::QPSettings_print(settings);
 
 	/* print solution */
 	#ifdef MINLIN_DEBUG
