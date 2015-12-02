@@ -157,7 +157,7 @@ namespace QPOpt {
 
 	/* with bound constraints */
 	template<typename Expression>
-	Vector<Expression> solve_bound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0, double my_eps){
+	Vector<Expression> solve_bound_smalbe(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0, double my_eps, bool smalbe, Matrix<Expression> B, double rho, double M){
 		Vector<Expression> x = x0;
 
 		/* MPRGP method */
@@ -176,6 +176,7 @@ namespace QPOpt {
 
 		/* algorithm parameters */
 		double Gamma = 1.0;
+		double eta = 1.0;
 		double alpha_bar = 1.9/normA; /* 0 < alpha_bar <= 2*norm(A) */
 
 		/* project initial approximation to feasible set */
@@ -195,8 +196,21 @@ namespace QPOpt {
 		fiTfi = dot(fi,fi);
 		betaTbeta = dot(beta,beta);
 
+		bool solved = false;
+		double normBx;
+		Vector<Expression> Bx; /* B*x */
+		double norm_Bx;
+		/* compute stopping criteria */
+		if(smalbe){
+			Bx = B*x;
+			norm_Bx = norm(Bx);
+			solved = (normgp > std::max(my_eps,std::min(norm_Bx,eta)));
+		} else {
+			solved = (normgp > my_eps*normb);
+		}	
+
 		/* main cycle */
-		while(normgp > my_eps*normb && it < 10000){
+		while(solved && it < 10000){
 			if(betaTbeta <= Gamma*Gamma*fiTfi){
 				/* 1. Proportional x_k. Trial conjugate gradient step */
 				Ap = A*p; hess_mult += 1;
@@ -279,6 +293,15 @@ namespace QPOpt {
 			betaTbeta = dot(beta,beta);
 			gp = fi + beta;
 			normgp = norm(gp);
+			
+			/* update stopping criteria */
+			if(smalbe){
+				Bx = B*x;
+				norm_Bx = norm(Bx);
+				solved = (normgp > std::max(my_eps,std::min(norm_Bx,eta)));
+			} else {
+				solved = (normgp > my_eps*normb);
+			}	
 
 			#ifdef QPOPT_DEBUG
 				std::cout << "it " << it << ": ";
@@ -299,6 +322,13 @@ namespace QPOpt {
 		return x;
 	}
 
+	/* with bound constraints */
+	template<typename Expression>
+	Vector<Expression> solve_bound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Vector<Expression> x0, double my_eps){
+		return solve_bound_smalbe(A, normA, b, l, x0, my_eps, false, A, 0.0, 0.0);
+
+	}
+
 	/* bound constrained without initial approximation, init approximation = 0 */
 	template<typename Expression>
 	Vector<Expression> solve_bound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, double my_eps){
@@ -310,28 +340,32 @@ namespace QPOpt {
 	
 	/* with equality and bound constraints */
 	template<typename Expression>
-	Vector<Expression> solve_eqbound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double norm BTB, Vector<Expression> x0, double my_eps){
+	Vector<Expression> solve_eqbound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, Vector<Expression> x0, double my_eps){
 		Vector<Expression> x = x0;
 
 		/* SMALBE method */
+		int it = 0;
 		double rho = 5*normA;
 		double M = 1.0;
 		double beta = 2.0;
 
 		Vector<Expression> x_old = x;
 		Vector<Expression> Ax;
-		double xAx,xTb,lambdaBx,xBBX;
+		double xAx,xTb,lambdaBx,xBBx;
 		double f,L,L_old;
 		
 		Vector<Expression> lambda(B.rows()); /* lagrange multipliers of equality constraints */
-		lambda(minlin:all) = 0.0;
+		lambda(minlin::all) = 0.0;
 		Vector<Expression> lambda_old;
 
 
 		Vector<Expression> Bx; /* B*x - feasibility */
 		double norm_Bx;
 		
+		double norm_gp;
 		//[x it_mprgp nmb_hess_mult_mprgp gp_out gp_norms err_norms] = solve_inner(A + rho*B'*B, (b - B'*lambda),l,B,rho,M,eta,x0, smalse_opt, x_sol);
+		/* compute gp */
+		
 		
 		Bx = B*x;
 		norm_Bx = norm(Bx);
@@ -346,13 +380,11 @@ namespace QPOpt {
 			Bx = B*x;
 			lambda += rho*Bx;
 
-			/* update M */
-			Lold = L;
-			Lold += rho*0.5*dot(Bx,Bx);
+
 			
 			/* compute function value */
 			Ax = A*x;
-			xAx = dot(Ap,x);
+			xAx = dot(Ax,x);
 			xTb = dot(b,x);
 			f = 0.5*xAx - xTb;			
 			lambdaBx = dot(lambda,Bx);
@@ -362,17 +394,19 @@ namespace QPOpt {
 			/* compute lagrangian */
 			L = f + xBBx + rho*0.5*dot(Bx,Bx); // TODO: rho*0.5*dot(Bx,Bx) could be eliminated
 			
-			if (it > 0 && L < L_old){
+			/* update M */
+			L_old = L;
+			if (it > 0 && L < L_old + rho*0.5*xBBx){
 				M = M/beta; 
 			}
 
-
-			gp = fi + beta;
-			norm_gp = norm(gp);
+			/* compute gp */
+//			gp = fi + beta;
+//			norm_gp = norm(gp);
 
 			#ifdef QPOPT_DEBUG
 				std::cout << "it " << it << ": ";
-				std::cout << "f = " << f << ", ||gP|| = " << normgp << ", ||Bx|| = " << norm_Bx << std::endl;
+				std::cout << "f = " << f << ", ||gP|| = " << norm_gp << ", ||Bx|| = " << norm_Bx << std::endl;
 			#endif	
 			
 			it += 1;
