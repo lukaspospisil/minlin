@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
 	real h = 1.0/(N-1); /* discretization */
 	real my_eps = 0.001; /* precision */
 	real normA; /* norm of hessian matrix */
+	real normBTB; /* estimation of the norm of BTB */
 
 	/* get NT,N from console */
 	if ( argc > 1 ){
@@ -100,15 +101,21 @@ int main(int argc, char *argv[]) {
 //	normA = (1.0/h)*4.0;
 
 	normA = (1.0/h)*4.0;
+	normBTB = 1.0;
 //	x = minlin::QPOpt::solve_bound(A,normA,b,l,my_eps);
 //	x = minlin::QPOpt::solve_unconstrained(A,b,my_eps);
-	x = minlin::QPOpt::solve_eqbound(A,normA,b,l,B,normBTB,my_eps);
+	int it;
+	x = minlin::QPOpt::solve_eqbound(&it, A,normA,b,l,B,normBTB,my_eps);
+
+	/* print info about algorithm performace */
+	std::cout << "-----------------------------------" << std::endl;
+	std::cout << " SMALBE it = " << it << std::endl;
 
 
 	/* save solution */
 	char name_of_file[256];					/* the name of output VTK file */
 
-	sprintf(name_of_file, "output_bound_%dt.vtk",NT);
+	sprintf(name_of_file, "output_eq_%dt.vtk",NT);
 
 	std::ofstream myfile;
 	myfile.open(name_of_file);

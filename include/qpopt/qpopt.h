@@ -206,7 +206,8 @@ namespace QPOpt {
 			norm_Bx = norm(Bx);
 			solved = (normgp > std::max(my_eps,std::min(norm_Bx,eta)));
 		} else {
-			solved = (normgp > my_eps*normb);
+//			solved = (normgp > my_eps*normb);
+			solved = (normgp > my_eps);
 		}	
 
 		/* main cycle */
@@ -340,17 +341,25 @@ namespace QPOpt {
 	
 	/* with equality and bound constraints */
 	template<typename Expression>
-	Vector<Expression> solve_eqbound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, Vector<Expression> x0, double my_eps){
+	Vector<Expression> solve_eqbound(int *it_out, Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, Vector<Expression> x0, double my_eps){
 		Vector<Expression> x = x0;
 
 		/* SMALBE method */
-		int it = 0;
+		int it = 1;
 		double rho = 5*normA;
 		double M = 1.0;
-		double beta = 2.0;
+		double betaM = 2.0;
 
 		Vector<Expression> x_old = x;
 		Vector<Expression> Ax;
+		Matrix<Expression> ArhoBTB;
+		Matrix<Expression> BT(B.cols(),B.rows());
+		Vector<Expression> binner;
+		Vector<Expression> g;
+		Vector<Expression> fi;
+		Vector<Expression> beta;
+		Vector<Expression> gp;
+
 		double xAx,xTb,lambdaBx,xBBx;
 		double f,L,L_old;
 		
@@ -358,14 +367,32 @@ namespace QPOpt {
 		lambda(minlin::all) = 0.0;
 		Vector<Expression> lambda_old;
 
+		//BT = transpose(B); // TODO: this is not working, I dont know why :(
+		for(int i=0; i < BT.rows(); i++){
+			for(int j=0; j < BT.cols(); j++){
+				BT(i,j) = B(j,i); // TODO: sorry for this
+			}
+		}
 
 		Vector<Expression> Bx; /* B*x - feasibility */
 		double norm_Bx;
-		
+
 		double norm_gp;
-		//[x it_mprgp nmb_hess_mult_mprgp gp_out gp_norms err_norms] = solve_inner(A + rho*B'*B, (b - B'*lambda),l,B,rho,M,eta,x0, smalse_opt, x_sol);
+		ArhoBTB = BT*B;
+		ArhoBTB = rho*ArhoBTB;
+		ArhoBTB += A;
+		binner = BT*lambda;
+		binner = (-1)*binner;
+		binner += b;
+		x = solve_bound_smalbe(ArhoBTB, normA + normBTB, binner, l, x, my_eps, true, B, rho, M);
+
+
 		/* compute gp */
-		
+		g = ArhoBTB*x; g -= binner;
+		fi = compute_fi(x, g, l);
+		beta = compute_beta(x, g, l);
+		gp = fi + beta;
+		norm_gp = norm(gp);
 		
 		Bx = B*x;
 		norm_Bx = norm(Bx);
@@ -375,14 +402,24 @@ namespace QPOpt {
 			x_old = x;
 			lambda_old = lambda;
 			
+			/* solve inner problem */
+			binner = BT*lambda;
+			binner = (-1)*binner;
+			binner += b;
+			x = solve_bound_smalbe(ArhoBTB, normA + normBTB, binner, l, x, my_eps, true, B, rho, M);
+
+			/* compute gp */
+			g = ArhoBTB*x; g -= binner;
+			fi = compute_fi(x, g, l);
+			beta = compute_beta(x, g, l);
+			gp = fi + beta;
+			norm_gp = norm(gp);			
 			
 			/* update lagrange multipliers (Uzawa) */
 			Bx = B*x;
 			lambda += rho*Bx;
-
-
 			
-			/* compute function value */
+			/* compute original function value */
 			Ax = A*x;
 			xAx = dot(Ax,x);
 			xTb = dot(b,x);
@@ -397,14 +434,11 @@ namespace QPOpt {
 			/* update M */
 			L_old = L;
 			if (it > 0 && L < L_old + rho*0.5*xBBx){
-				M = M/beta; 
+				M = M/betaM; 
 			}
 
-			/* compute gp */
-//			gp = fi + beta;
-//			norm_gp = norm(gp);
-
 			#ifdef QPOPT_DEBUG
+				std::cout << " ----------- SMALBE iteration ---------- " << std::endl;
 				std::cout << "it " << it << ": ";
 				std::cout << "f = " << f << ", ||gP|| = " << norm_gp << ", ||Bx|| = " << norm_Bx << std::endl;
 			#endif	
@@ -412,16 +446,19 @@ namespace QPOpt {
 			it += 1;
 		}
 		
+		/* set return values */
+		*it_out = it;
+				
 		return x;
 	}
 
 	/* equality and bound constrained without initial approximation, init approximation = 0 */
 	template<typename Expression>
-	Vector<Expression> solve_eqbound(Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, double my_eps){
+	Vector<Expression> solve_eqbound(int *it_out, Matrix<Expression> A, double normA, Vector<Expression> b, Vector<Expression> l, Matrix<Expression> B, double normBTB, double my_eps){
 		Vector<Expression> x0 = b;
 		x0(minlin::all) = 0.0; /* default initial approximation */  
 
-		return solve_eqbound(A, normA, b, l, B, normBTB, x0, my_eps);
+		return solve_eqbound(it_out, A, normA, b, l, B, normBTB, x0, my_eps);
 	}
 
 
