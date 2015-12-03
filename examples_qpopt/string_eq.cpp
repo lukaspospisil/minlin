@@ -16,6 +16,7 @@ Solution of string problem with QPOPT library
 #include <minlin/modules/threx/threx.h>
 
 #include "qpopt.h"
+#include "savevtk.h"
 
 using namespace minlin::threx;
 
@@ -77,8 +78,8 @@ int main(int argc, char *argv[]) {
 	B(1,N-1) = 1.0;
 
 	/* scale to [0,1] */
-	A = (1/h)*A;
-	b = h*b;
+	A = A;
+	b = h*h*b;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -95,8 +96,13 @@ int main(int argc, char *argv[]) {
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.norm_A = (1.0/h)*4.0;
+	settings.norm_A = 4.0;
 	settings.norm_BTB = 1.0;
+	settings.my_eps = h*0.1;
+
+	std::cout << "h = " << h << std::endl;
+	std::cout << "eps = " << settings.my_eps << std::endl;
+
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
 	x = minlin::QPOpt::solve_eqbound(&settings, A, b,l,B);

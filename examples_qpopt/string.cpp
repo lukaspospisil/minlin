@@ -3,7 +3,7 @@ Solution of string problem with QPOPT library
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
-//#define QPOPT_DEBUG
+#define QPOPT_DEBUG
 //#define QPOPT_DEBUG2
 
 #include <thrust/functional.h>
@@ -63,16 +63,19 @@ int main(int argc, char *argv[]) {
 
 	/* Dirichlet boundary condition */
 	A(0,0) = 1.0;
-	A(N-1,N-1) = 1.0;
 	A(0,1) = 0.0;
 	A(1,0) = 0.0;
+
+	A(N-1,N-1) = 1.0;
 	A(N-1,N-2) = 0.0;
 	A(N-2,N-1) = 0.0;
+
 	b(0) = 0.0;
 	b(N-1) = 0.0;
 
 	/* scale to [0,1] */
-	b = h*h*b;
+	A = (1/h)*A;
+	b = h*b;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -85,7 +88,7 @@ int main(int argc, char *argv[]) {
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.my_eps = 0.1*norm(b);
+	settings.my_eps = 0.001;
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
 	x = minlin::QPOpt::solve_unconstrained(&settings,A,b);

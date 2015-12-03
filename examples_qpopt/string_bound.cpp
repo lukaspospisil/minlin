@@ -69,6 +69,10 @@ int main(int argc, char *argv[]) {
 		b(i) = -5.0; 
     }
 
+	/* scale to [0,1] */
+	A = A;
+	b = h*h*b;
+
 	/* Dirichlet boundary condition */
 	A(0,0) = 1.0;
 	A(N-1,N-1) = 1.0;
@@ -79,9 +83,6 @@ int main(int argc, char *argv[]) {
 	b(0) = 0.0;
 	b(N-1) = 0.0;
 
-	/* scale to [0,1] */
-	A = (1.0/h)*A;
-	b = h*b;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -97,8 +98,10 @@ int main(int argc, char *argv[]) {
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.norm_A = (1.0/h)*4.0;
-
+	settings.norm_A = 4.0;
+//	settings.my_eps = 0.1*norm(b);
+	settings.my_eps = h*0.001;
+	
 	minlin::QPOpt::QPSettings_starttimer(&settings);
 	x = minlin::QPOpt::solve_bound(&settings,A,b,l);
 	minlin::QPOpt::QPSettings_stoptimer(&settings);
