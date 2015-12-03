@@ -15,6 +15,7 @@ Solution of string problem with QPOPT library
 
 #include <qpopt.h>
 
+#include "savevtk.h"
 
 using namespace minlin::threx;
 
@@ -55,7 +56,7 @@ int main(int argc, char *argv[]) {
 			A(i,i+1) = -1.0;
 		}
 
-		b(i) = -15.0; /* force */
+		b(i) = -1.0; /* force */
     }
 	A(0,0) = 1.0;
 	A(N-1,N-1) = 1.0;
@@ -71,8 +72,7 @@ int main(int argc, char *argv[]) {
 	b(N-1) = 0.0;
 
 	/* scale to [0,1] */
-	A = (1.0/h)*A;
-	b = h*b;
+	b = h*h*b;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -84,6 +84,8 @@ int main(int argc, char *argv[]) {
 
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
+
+	settings.my_eps = 0.1*norm(b);
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
 	x = minlin::QPOpt::solve_unconstrained(&settings,A,b);
@@ -97,5 +99,10 @@ int main(int argc, char *argv[]) {
 		std::cout << "x:" << std::endl;
 		std::cout << x << std::endl << std::endl;
 	#endif
+
+	/* save solution */
+	char name_of_file[256];					/* the name of output VTK file */
+	sprintf(name_of_file, "output_t%d_n%d.vtk",NT,N);
+	savevtk(name_of_file,x);
 
 }

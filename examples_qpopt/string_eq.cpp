@@ -107,42 +107,8 @@ int main(int argc, char *argv[]) {
 
 	/* save solution */
 	char name_of_file[256];					/* the name of output VTK file */
-
-	sprintf(name_of_file, "output_eq_%dt.vtk",NT);
-
-	std::ofstream myfile;
-	myfile.open(name_of_file);
-	myfile << "# vtk DataFile Version 3.1" << std::endl;
-	myfile << "this is the solution of our problem" << std::endl;
-	myfile << "ASCII" << std::endl;
-	myfile << "DATASET POLYDATA" << std::endl;
-
-	/* points - coordinates */
-	myfile << "POINTS " << N << " FLOAT" << std::endl;
-	for(i=0;i < N;i++){
-		myfile << i*h << " " << x(i) << " 0.0" << std::endl;
-	}
+	sprintf(name_of_file, "output_eq_t%d_n%d.vtk",NT,N);
+	savevtk(name_of_file,x);
 	
-	/* line solution */
-	myfile << "LINES 1 " << N+1 << std::endl;
-	myfile << N << " ";
-	for(i=0;i < N;i++){
-		myfile << i << " ";
-	}
-	myfile << std::endl;
-	
-	/* values is points */
-	myfile << "POINT_DATA " << N  << std::endl;
-	myfile << "SCALARS solution float 1"  << std::endl;
-	myfile << "LOOKUP_TABLE default"  << std::endl;
-	for(i=0;i < N;i++){
-//		myfile << x(i) << std::endl;
-		myfile << 1.0 << std::endl;
-	}
-
-
-
-	myfile.close();
-
 	return 0;
 }
