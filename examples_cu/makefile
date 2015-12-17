@@ -1,14 +1,16 @@
 all : assign assign2 binary binary2 copying dot expression index inplace logical matrix mul range range_check storage submatrix unary vector_matrix
 # rand
 
-INCLUDE= -I/home/pospik/Dokumenty/soft/minlin/include
-INCLUDE+= -I/home/pospik/Dokumenty/soft/minlin/
-INCLUDE+= -I/usr/include/openmpi-x86_64/
-INCLUDE+= -I/opt/intel/compilers_and_libraries/linux/mkl/include/
-INCLUDE+= -L/usr/local/cuda-6.5/lib64 -lcudart -lcublas -lcusparse
-INCLUDE+= -L/home/pospik/Dokumenty/soft/minlin/blas/ -lgemv -lgemm
-INCLUDE+= -L/opt/intel/mkl/lib/intel64/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
-INCLUDE+= -L/usr/lib64/openmpi/lib -lmpi -lmpi_cxx -lompitrace -lmpi_usempi
+#INCLUDE= -I/home/pospik/Dokumenty/soft/minlin/include
+#INCLUDE+= -I/home/pospik/Dokumenty/soft/minlin/
+#INCLUDE+= -I/usr/include/openmpi-x86_64/
+#INCLUDE+= -I/opt/intel/compilers_and_libraries/linux/mkl/include/
+#INCLUDE+= -L/usr/local/cuda-6.5/lib64 -lcudart -lcublas -lcusparse
+#INCLUDE+= -L/home/pospik/Dokumenty/soft/minlin/blas/ -lgemv -lgemm
+#INCLUDE+= -L/opt/intel/mkl/lib/intel64/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
+#INCLUDE+= -L/usr/lib64/openmpi/lib -lmpi -lmpi_cxx -lompitrace -lmpi_usempi
+
+INCLUDE= -I/users/pospisil/soft/minlin/
 
 NVCCFLAGS=-ccbin=gcc --compiler-options -fopenmp
 INCLUDE+= $(NVCCFLAGS)
