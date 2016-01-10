@@ -10,10 +10,15 @@ all : assign assign2 binary binary2 copying dot expression index inplace logical
 #INCLUDE+= -L/opt/intel/mkl/lib/intel64/ -lmkl_core -lmkl_rt -lmkl_gnu_thread
 #INCLUDE+= -L/usr/lib64/openmpi/lib -lmpi -lmpi_cxx -lompitrace -lmpi_usempi
 
-INCLUDE= -I/users/pospisil/soft/minlin/
+#INCLUDE= -I/users/pospisil/soft/
+#INCLUDE+= -I/users/pospisil/soft/minlin/
+#INCLUDE+= -I/users/pospisil/soft/minlin/include/
 
-NVCCFLAGS=-ccbin=gcc --compiler-options -fopenmp
-INCLUDE+= $(NVCCFLAGS)
+INCLUDE=-I/users/pospisil/soft/minlin/include
+INCLUDE=-I$(MKLROOT)
+
+#NVCCFLAGS=-ccbin=gcc --compiler-options -fopenmp 
+#INCLUDE+= $(NVCCFLAGS)
 
 assign: assign.cu
 	nvcc -arch=sm_35 assign.cu -o assign $(INCLUDE)
