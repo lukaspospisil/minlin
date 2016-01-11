@@ -12,7 +12,7 @@ Solution of string problem with QPOPT library
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
-#include <qpopt/smalbe.h>
+#include <qpopt/mprgp.h>
 
 #include "savevtk.h"
 
@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
     DeviceVector<real> b(N); /* linear term */
     DeviceVector<real> l(N); /* bound constraints */
 	DeviceVector<real> x(N); /* solution */
-    DeviceMatrix<real> B(2, N); /* equality constraints */
 
 	/* fill matrix */
     for (i = 0; i < N; i++) {
@@ -69,13 +68,20 @@ int main(int argc, char *argv[]) {
 		b(i) = -5.0; 
     }
 
-	/* Dirichlet boundary condition */
-	B(0,0) = 1.0;
-	B(1,N-1) = 1.0;
-
 	/* scale to [0,1] */
-	A = A;
-	b = h*h*b;
+	A = (1/h)*A;
+	b = h*b;
+
+	/* Dirichlet boundary condition */
+	A(0,0) = 1.0;
+	A(N-1,N-1) = 1.0;
+	A(0,1) = 0.0;
+	A(1,0) = 0.0;
+	A(N-1,N-2) = 0.0;
+	A(N-2,N-1) = 0.0;
+	b(0) = 0.0;
+	b(N-1) = 0.0;
+
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -85,23 +91,18 @@ int main(int argc, char *argv[]) {
 		std::cout << b << std::endl << std::endl;
 		std::cout << "l:" << std::endl;
 		std::cout << l << std::endl << std::endl;
-		std::cout << "B:" << std::endl;
-		std::cout << B << std::endl << std::endl;
 	#endif
+
 
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.norm_A = 4.0;
-	settings.norm_BTB = 1.0;
-	settings.my_eps = h*0.1;
-
-	std::cout << "h = " << h << std::endl;
-	std::cout << "eps = " << settings.my_eps << std::endl;
-
-
+	settings.norm_A = 4.0/h;
+//	settings.my_eps = 0.1*norm(b);
+//	settings.my_eps = h*0.001;
+	
 	minlin::QPOpt::QPSettings_starttimer(&settings);
-	x = minlin::QPOpt::smalbe(&settings, A, b,l,B);
+	x = minlin::QPOpt::mprgp(&settings,A,b,l);
 	minlin::QPOpt::QPSettings_stoptimer(&settings);
 
 	/* print info about algorithm performace */
@@ -109,8 +110,8 @@ int main(int argc, char *argv[]) {
 
 	/* save solution */
 	char name_of_file[256];					/* the name of output VTK file */
-	sprintf(name_of_file, "output_eq_t%d_n%d.vtk",NT,N);
+	sprintf(name_of_file, "output_bound_t%d_n%d.vtk",NT,N);
 	savevtk(name_of_file,x);
-	
+
 	return 0;
 }

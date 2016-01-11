@@ -47,17 +47,41 @@ set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
 include_directories(${MINLIN_INCLUDE})
 
 # MINLIN HOST EXECUTABLE
-#add_executable(minlin_host sample_host.cpp)
-#target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
-#set_property(
-#	TARGET minlin_host
-#	APPEND
-#	PROPERTY INCLUDE_DIRECTORIES
-#	${MINLIN_INCLUDE})
-#set_target_properties(minlin_host PROPERTIES
-#	OUTPUT_NAME output_minlin_host
-#	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
-#	)
+add_executable(string_host string.cpp)
+target_link_libraries(string_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
+set_property(
+	TARGET string_host
+	APPEND
+	PROPERTY INCLUDE_DIRECTORIES
+	${MINLIN_INCLUDE})
+set_target_properties(string_host PROPERTIES
+	OUTPUT_NAME string_host
+	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
+	)
+
+add_executable(string_bound_host string_bound.cpp)
+target_link_libraries(string_bound_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
+set_property(
+	TARGET string_bound_host
+	APPEND
+	PROPERTY INCLUDE_DIRECTORIES
+	${MINLIN_INCLUDE})
+set_target_properties(string_bound_host PROPERTIES
+	OUTPUT_NAME string_bound_host
+	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
+	)
+
+add_executable(string_eq_host string_eq.cpp)
+target_link_libraries(string_eq_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
+set_property(
+	TARGET string_eq_host
+	APPEND
+	PROPERTY INCLUDE_DIRECTORIES
+	${MINLIN_INCLUDE})
+set_target_properties(string_eq_host PROPERTIES
+	OUTPUT_NAME string_eq_host
+	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
+	)
 
 # MINLIN DEVICE EXECUTABLE
 include(FindCUDA)
@@ -69,21 +93,21 @@ string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 
 cuda_include_directories(${MINLIN_INCLUDE})
 
 # add all samples
-#cuda_add_executable(string_device string.cu
-#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
-#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-#target_link_libraries(string_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-#set_target_properties(string_device PROPERTIES
-#	OUTPUT_NAME string_device
-#	)
+cuda_add_executable(string_device string.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(string_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(string_device PROPERTIES
+	OUTPUT_NAME string_device
+	)
 
-#cuda_add_executable(string_bound_device string_bound.cu
-#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
-#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-#target_link_libraries(string_bound_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-#set_target_properties(string_bound_device PROPERTIES
-#	OUTPUT_NAME string_bound_device
-#	)
+cuda_add_executable(string_bound_device string_bound.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(string_bound_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(string_bound_device PROPERTIES
+	OUTPUT_NAME string_bound_device
+	)
 
 cuda_add_executable(string_eq_device string_eq.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""

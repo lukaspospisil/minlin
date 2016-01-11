@@ -5,14 +5,12 @@ Solution of string problem with QPOPT library
 //#define MINLIN_DEBUG
 //#define QPOPT_DEBUG
 //#define QPOPT_DEBUG2
-//#define QPOPT_DEBUG_F
 
 #include <iostream>
-#include <fstream>
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
-#include <qpopt/smalbe.h>
+#include <qpopt/cg.h>
 
 #include "savevtk.h"
 
@@ -21,11 +19,12 @@ using namespace minlin::threx;
 MINLIN_INIT
 
 int main(int argc, char *argv[]) {
-    typedef double real; /* we are going to compute in double/float? */ 
+   typedef double real; /* we are going to compute in double/float? */ 
 	int i; /* iterator */
     int N = 10; /* number of nodes - dimension of problem */
     int NT = 1; /* number of threads */
 	real h = 1.0/(N-1); /* discretization */
+	real my_eps = 0.0001; /* precision */
 
 	/* get NT,N from console */
 	if ( argc > 1 ){
@@ -43,13 +42,10 @@ int main(int argc, char *argv[]) {
     /* allocate storage */
     DeviceMatrix<real> A(N, N); /* Hessian matrix */
     DeviceVector<real> b(N); /* linear term */
-    DeviceVector<real> l(N); /* bound constraints */
 	DeviceVector<real> x(N); /* solution */
-    DeviceMatrix<real> B(2, N); /* equality constraints */
 
 	/* fill matrix */
     for (i = 0; i < N; i++) {
-        /* stiffness matrix */
         A(i,i) = 2.0;
         if(i>0){
 			A(i,i-1) = -1.0;
@@ -58,24 +54,26 @@ int main(int argc, char *argv[]) {
 			A(i,i+1) = -1.0;
 		}
 
-		/* bound constraint - the obstacle */
-		if(i < 0.5*N){
-			l(i) = -0.3;
-		} else {
-			l(i) = -0.5;
-		}
-
-		/* force */
-		b(i) = -5.0; 
+		b(i) = -1.0; /* force */
     }
+	A(0,0) = 1.0;
+	A(N-1,N-1) = 1.0;
 
 	/* Dirichlet boundary condition */
-	B(0,0) = 1.0;
-	B(1,N-1) = 1.0;
+	A(0,0) = 1.0;
+	A(0,1) = 0.0;
+	A(1,0) = 0.0;
+
+	A(N-1,N-1) = 1.0;
+	A(N-1,N-2) = 0.0;
+	A(N-2,N-1) = 0.0;
+
+	b(0) = 0.0;
+	b(N-1) = 0.0;
 
 	/* scale to [0,1] */
-	A = A;
-	b = h*h*b;
+	A = (1/h)*A;
+	b = h*b;
 
 	/* print problem */
 	#ifdef MINLIN_DEBUG
@@ -83,34 +81,28 @@ int main(int argc, char *argv[]) {
 		std::cout << A << std::endl << std::endl;
 		std::cout << "b:" << std::endl;
 		std::cout << b << std::endl << std::endl;
-		std::cout << "l:" << std::endl;
-		std::cout << l << std::endl << std::endl;
-		std::cout << "B:" << std::endl;
-		std::cout << B << std::endl << std::endl;
 	#endif
 
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.norm_A = 4.0;
-	settings.norm_BTB = 1.0;
-	settings.my_eps = h*0.1;
-
-	std::cout << "h = " << h << std::endl;
-	std::cout << "eps = " << settings.my_eps << std::endl;
-
+	settings.my_eps = my_eps;
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
-	x = minlin::QPOpt::smalbe(&settings, A, b,l,B);
+	x = minlin::QPOpt::cg(&settings,A,b);
 	minlin::QPOpt::QPSettings_stoptimer(&settings);
 
 	/* print info about algorithm performace */
 	minlin::QPOpt::QPSettings_print(settings);
 
+	/* print solution */
+	#ifdef MINLIN_DEBUG
+		std::cout << "x:" << std::endl;
+		std::cout << x << std::endl << std::endl;
+	#endif
+
 	/* save solution */
 	char name_of_file[256];					/* the name of output VTK file */
-	sprintf(name_of_file, "output_eq_t%d_n%d.vtk",NT,N);
+	sprintf(name_of_file, "output_t%d_n%d.vtk",NT,N);
 	savevtk(name_of_file,x);
-	
-	return 0;
 }
