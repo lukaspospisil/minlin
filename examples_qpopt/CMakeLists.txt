@@ -16,7 +16,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # include directories to this project
-set(PROJECT_DEVICE_SORCES string.cu)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # set general g++ flags
@@ -68,10 +67,28 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 set(CUDA_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}") # add flags specific to build type
 string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 from options
 cuda_include_directories(${MINLIN_INCLUDE})
-cuda_add_executable(minlin_device ${PROJECT_DEVICE_SORCES}
+
+# add all samples
+cuda_add_executable(string_device string.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(minlin_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(minlin_device PROPERTIES
-	OUTPUT_NAME output_minlin_device
+target_link_libraries(string_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(string_device PROPERTIES
+	OUTPUT_NAME string_device
+	)
+
+cuda_add_executable(string_bound_device string_bound.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(string_bound_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(string_bound_device PROPERTIES
+	OUTPUT_NAME string_bound_device
+	)
+
+cuda_add_executable(string_eq_device string_eq.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(string_eq_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(string_eq_device PROPERTIES
+	OUTPUT_NAME string_eq_device
 	)

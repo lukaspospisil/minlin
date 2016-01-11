@@ -7,19 +7,18 @@ Solution of string problem with QPOPT library
 //#define QPOPT_DEBUG2
 //#define QPOPT_DEBUG_F
 
-#include <thrust/functional.h>
-
 #include <iostream>
 #include <fstream>
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
+#include <minlin/qpopt.h">
 
-#include "qpopt.h"
 #include "savevtk.h"
 
 using namespace minlin::threx;
 
+MINLIN_INIT
 
 int main(int argc, char *argv[]) {
     typedef double real; /* we are going to compute in double/float? */ 
@@ -45,11 +44,11 @@ int main(int argc, char *argv[]) {
 	omp_set_nested(1);
 
     /* allocate storage */
-    HostMatrix<real> A(N, N); /* Hessian matrix */
-    HostVector<real> b(N); /* linear term */
-    HostVector<real> l(N); /* bound constraints */
-	HostVector<real> x(N); /* solution */
-    HostMatrix<real> B(2, N); /* equality constraints */
+    DeviceMatrix<real> A(N, N); /* Hessian matrix */
+    DeviceVector<real> b(N); /* linear term */
+    DeviceVector<real> l(N); /* bound constraints */
+	DeviceVector<real> x(N); /* solution */
+    DeviceMatrix<real> B(2, N); /* equality constraints */
 
 	/* fill matrix */
     for (i = 0; i < N; i++) {
