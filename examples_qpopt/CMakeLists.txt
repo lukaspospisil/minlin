@@ -68,7 +68,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 set(CUDA_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}") # add flags specific to build type
 string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 from options
 cuda_include_directories(${MINLIN_INCLUDE})
-cuda_add_executable(minlin_device PROJECT_DEVICE_SORCES
+cuda_add_executable(minlin_device ${PROJECT_DEVICE_SORCES}
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 target_link_libraries(minlin_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
