@@ -12,7 +12,7 @@ Solution of string problem with QPOPT library
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
-#include <qpopt/qpopt.h>
+#include <qpopt/mprgp.h>
 
 #include "savevtk.h"
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 	settings.my_eps = h*0.001;
 	
 	minlin::QPOpt::QPSettings_starttimer(&settings);
-	x = minlin::QPOpt::solve_bound(&settings,A,b,l);
+	x = minlin::QPOpt::mprgp(&settings,A,b,l);
 	minlin::QPOpt::QPSettings_stoptimer(&settings);
 
 	/* print info about algorithm performace */
@@ -112,8 +112,6 @@ int main(int argc, char *argv[]) {
 	char name_of_file[256];					/* the name of output VTK file */
 	sprintf(name_of_file, "output_bound_t%d_n%d.vtk",NT,N);
 	savevtk(name_of_file,x);
-
-
 
 	return 0;
 }

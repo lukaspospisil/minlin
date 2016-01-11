@@ -1,6 +1,6 @@
 /*******************************************************************************
 QP OPTIMAL SOLVERS for MINLIN library
-Lukas Pospisil, 2015-2016
+Lukas Pospisil, 2016
 lukas.pospisil@vsb.cz
 
 * using MINLIN library (CSCS Lugano - Timothy Moroney, Ben Cumming)
@@ -28,29 +28,32 @@ namespace QPOpt {
 	/* unconstrained with initial approximation */
 	template<typename Expression>
 	Vector<Expression> cg(QPSettings *settings, Matrix<Expression> A, Vector<Expression> b, Vector<Expression> x0){
-
-		Vector<Expression> x = x0;
+		settings->cg = true; /* this problem is computed using CG method */
+		
+		Vector<Expression> x = x0; /* set aprroximation as initial */
 
 		/* CG method */
 		Vector<Expression> g; /* gradient */
 		Vector<Expression> p; /* A-conjugate vector */
 		Vector<Expression> Ap; /* A*p */
 		int it = 0; /* iteration counter */
+		int hess_mult = 0; /* number of hessian multiplications */
 		double normg, alpha, beta, pAp, gg, gg_old;
 	
-		g = A*x; g -= b; /* compute gradient */
+		g = A*x; hess_mult += 1; g -= b; /* compute gradient */
 		p = g; /* initial conjugate gradient */
 
 		gg = dot(g,g);
 		normg = std::sqrt(gg);
 		while(normg > settings->my_eps && it < settings->maxit){
 			/* compute new approximation */
-			Ap = A*p;
+			Ap = A*p; hess_mult += 1;
 			pAp = dot(Ap,p);
-			alpha = gg/pAp;
-			x -= alpha*p;
+			alpha = gg/pAp; /* compute step-size */
+			x -= alpha*p; /* set new approximation */
 
-			g -= alpha*Ap; /* compute gradient recursively */
+			/* compute gradient recursively */
+			g -= alpha*Ap; 
 			gg_old = gg;
 			gg = dot(g,g);
 			normg = std::sqrt(gg);
@@ -71,7 +74,8 @@ namespace QPOpt {
 		/* set oputput */
 		settings->it_cg = it; 
 		settings->norm_g = normg; 
-		
+		settings->hess_mult = hess_mult;		
+
 		return x;
 	}
 
