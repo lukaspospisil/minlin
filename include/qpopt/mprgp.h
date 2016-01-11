@@ -72,7 +72,7 @@ namespace QPOpt {
 				beta(i) = 0.0;
 			} else {
 				/* active */
-				beta(i) = std::min(g(i),0.0);
+				beta(i) = minimum(g(i),0.0);
 			}
 		}
 
@@ -158,7 +158,7 @@ namespace QPOpt {
 			Bx = B*x;
 			norm_Bx = norm(Bx);
 //			solved = (normgp > std::max(settings->my_eps,std::min(norm_Bx,settings->eta)));
-			solved = (normgp > std::min(norm_Bx,settings->eta));
+			solved = (normgp > minimum(norm_Bx,settings->eta));
 		} else {
 			solved = (normgp > settings->my_eps);
 		}	
