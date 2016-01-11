@@ -10,7 +10,7 @@ Solution of string problem with QPOPT library
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
-#include <qpopt/qpopt.h>
+#include <qpopt/cg.h>
 
 #include "savevtk.h"
 
