@@ -12,7 +12,7 @@ Solution of string problem with QPOPT library
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
-#include <minlin/qpopt.h">
+#include <minlin/smalbe.h">
 
 #include "savevtk.h"
 
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
-	x = minlin::QPOpt::solve_eqbound(&settings, A, b,l,B);
+	x = minlin::QPOpt::smalbe(&settings, A, b,l,B);
 	minlin::QPOpt::QPSettings_stoptimer(&settings);
 
 	/* print info about algorithm performace */

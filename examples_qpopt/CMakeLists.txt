@@ -77,18 +77,18 @@ cuda_include_directories(${MINLIN_INCLUDE})
 #	OUTPUT_NAME string_device
 #	)
 
-cuda_add_executable(string_bound_device string_bound.cu
-	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
-	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(string_bound_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(string_bound_device PROPERTIES
-	OUTPUT_NAME string_bound_device
-	)
-
-#cuda_add_executable(string_eq_device string_eq.cu
+#cuda_add_executable(string_bound_device string_bound.cu
 #	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 #	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-#target_link_libraries(string_eq_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-#set_target_properties(string_eq_device PROPERTIES
-#	OUTPUT_NAME string_eq_device
+#target_link_libraries(string_bound_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+#set_target_properties(string_bound_device PROPERTIES
+#	OUTPUT_NAME string_bound_device
 #	)
+
+cuda_add_executable(string_eq_device string_eq.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(string_eq_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(string_eq_device PROPERTIES
+	OUTPUT_NAME string_eq_device
+	)
