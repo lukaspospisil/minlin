@@ -7,13 +7,17 @@
 # - 
 #
 #--------------------------------------------------
-project(MINLIN_SAMPLE)
+project(QPOPT_MINLIN_SAMPLE)
 cmake_minimum_required(VERSION 2.8)
 
 # set default build type
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
+
+# include directories to this project
+set(PROJECT_DEVICE_SORCES string.cu)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # set general g++ flags
 # note: we always need -O3 because minlin_host doesn't compile without it
@@ -43,23 +47,18 @@ set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
 	-DUSE_MINLIN)
 include_directories(${MINLIN_INCLUDE})
 
-# include THREX-BLAS libraries
-#set(THREXBLASROOT ${CMAKE_CURRENT_SOURCE_DIR}/../blas)
-#include_directories(${THREXBLASROOT})
-#link_directories(${THREXBLASROOT})
-
 # MINLIN HOST EXECUTABLE
-add_executable(minlin_host sample_host.cpp)
-target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
-set_property(
-	TARGET minlin_host
-	APPEND
-	PROPERTY INCLUDE_DIRECTORIES
-	${MINLIN_INCLUDE})
-set_target_properties(minlin_host PROPERTIES
-	OUTPUT_NAME output_minlin_host
-	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
-	)
+#add_executable(minlin_host sample_host.cpp)
+#target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
+#set_property(
+#	TARGET minlin_host
+#	APPEND
+#	PROPERTY INCLUDE_DIRECTORIES
+#	${MINLIN_INCLUDE})
+#set_target_properties(minlin_host PROPERTIES
+#	OUTPUT_NAME output_minlin_host
+#	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
+#	)
 
 # MINLIN DEVICE EXECUTABLE
 include(FindCUDA)
@@ -69,7 +68,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 set(CUDA_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}") # add flags specific to build type
 string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 from options
 cuda_include_directories(${MINLIN_INCLUDE})
-cuda_add_executable(minlin_device sample_device.cu
+cuda_add_executable(minlin_device PROJECT_DEVICE_SORCES
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 target_link_libraries(minlin_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
