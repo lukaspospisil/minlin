@@ -3,7 +3,7 @@ Solution of string problem with QPOPT library
 
 *******************************************************************************/
 //#define MINLIN_DEBUG
-#define QPOPT_DEBUG
+//#define QPOPT_DEBUG
 //#define QPOPT_DEBUG2
 
 #include <iostream>
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.my_eps = 0.001;
+	settings.my_eps = my_eps;
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
 	x = minlin::QPOpt::cg(&settings,A,b);

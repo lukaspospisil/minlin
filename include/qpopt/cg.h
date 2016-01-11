@@ -36,7 +36,7 @@ namespace QPOpt {
 		Vector<Expression> p; /* A-conjugate vector */
 		Vector<Expression> Ap; /* A*p */
 		int it = 0; /* iteration counter */
-		double normb, normg, alpha, beta, pAp, gg, gg_old;
+		double normg, alpha, beta, pAp, gg, gg_old;
 	
 		g = A*x; g -= b; /* compute gradient */
 		p = g; /* initial conjugate gradient */
@@ -81,7 +81,7 @@ namespace QPOpt {
 		Vector<Expression> x0 = b;
 		x0(minlin::all) = 0.0; /* default initial approximation */  
 
-		return solve_unconstrained(settings, A, b, x0);
+		return cg(settings, A, b, x0);
 	}
 
 }
