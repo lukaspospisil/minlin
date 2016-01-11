@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
     }
 
 	/* scale to [0,1] */
-	A = A;
-	b = h*h*b;
+	A = (1/h)*A;
+	b = h*b;
 
 	/* Dirichlet boundary condition */
 	A(0,0) = 1.0;
@@ -97,9 +97,9 @@ int main(int argc, char *argv[]) {
 	minlin::QPOpt::QPSettings settings;
 	minlin::QPOpt::QPSettings_default(&settings);
 
-	settings.norm_A = 4.0;
+	settings.norm_A = 4.0/h;
 //	settings.my_eps = 0.1*norm(b);
-	settings.my_eps = h*0.001;
+//	settings.my_eps = h*0.001;
 	
 	minlin::QPOpt::QPSettings_starttimer(&settings);
 	x = minlin::QPOpt::mprgp(&settings,A,b,l);

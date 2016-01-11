@@ -72,7 +72,11 @@ namespace QPOpt {
 				beta(i) = 0.0;
 			} else {
 				/* active */
-				beta(i) = minimum(g(i),0.0);
+				if(g(i) < 0.0){
+				 beta(i) = g(i);
+				} else {
+				 beta(i) = 0.0;
+				}
 			}
 		}
 
@@ -158,7 +162,11 @@ namespace QPOpt {
 			Bx = B*x;
 			norm_Bx = norm(Bx);
 //			solved = (normgp > std::max(settings->my_eps,std::min(norm_Bx,settings->eta)));
-			solved = (normgp > minimum(norm_Bx,settings->eta));
+			if(norm_Bx < settings->eta){
+			 solved = (normgp > norm_Bx);
+			} else {
+			 solved = (normgp > settings->eta);
+			}
 		} else {
 			solved = (normgp > settings->my_eps);
 		}	
@@ -251,7 +259,12 @@ namespace QPOpt {
 			if(settings->smalbe){
 				Bx = B*x;
 				norm_Bx = norm(Bx);
-				solved = (normgp > std::max(settings->my_eps,std::min(norm_Bx,settings->eta)));
+				//solved = (normgp > thrust::maximum<double>(settings->my_eps,thrust::minimum<double>(norm_Bx,settings->eta)));
+				if(norm_Bx < settings->eta){
+					solved = (normgp > norm_Bx);
+				} else {
+					solved = (normgp > settings->eta);
+				} 
 			} else {
 				solved = (normgp > settings->my_eps);
 			}	
