@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 	settings.my_eps = 0.001;
 
 	minlin::QPOpt::QPSettings_starttimer(&settings);
-	x = minlin::QPOpt::solve_unconstrained(&settings,A,b);
+	x = minlin::QPOpt::cg(&settings,A,b);
 	minlin::QPOpt::QPSettings_stoptimer(&settings);
 
 	/* print info about algorithm performace */
