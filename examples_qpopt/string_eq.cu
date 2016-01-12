@@ -18,7 +18,6 @@ Solution of string problem with QPOPT library
 
 using namespace minlin::threx;
 
-MINLIN_INIT
 
 int main(int argc, char *argv[]) {
     typedef double real; /* we are going to compute in double/float? */ 

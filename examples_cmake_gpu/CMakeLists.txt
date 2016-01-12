@@ -49,17 +49,17 @@ include_directories(${MINLIN_INCLUDE})
 #link_directories(${THREXBLASROOT})
 
 # MINLIN HOST EXECUTABLE
-add_executable(minlin_host sample_host.cpp)
-target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
-set_property(
-	TARGET minlin_host
-	APPEND
-	PROPERTY INCLUDE_DIRECTORIES
-	${MINLIN_INCLUDE})
-set_target_properties(minlin_host PROPERTIES
-	OUTPUT_NAME output_minlin_host
-	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
-	)
+#add_executable(minlin_host sample_host.cpp)
+#target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
+#set_property(
+#	TARGET minlin_host
+#	APPEND
+#	PROPERTY INCLUDE_DIRECTORIES
+#	${MINLIN_INCLUDE})
+#set_target_properties(minlin_host PROPERTIES
+#	OUTPUT_NAME output_minlin_host
+#	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
+#	)
 
 # MINLIN DEVICE EXECUTABLE
 include(FindCUDA)

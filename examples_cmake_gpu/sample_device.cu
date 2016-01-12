@@ -37,10 +37,8 @@ int main() {
     std::cout << D << std::endl;
 
 //    D(all) = range(1,5);
-    
-    std::cout << range(1,5) << std::endl;
-    
- //   D(all) = 1;
+//    std::cout << range(1,5) << std::endl;
+   D(all) = 1;
     
     std::cout << D << std::endl;
     
