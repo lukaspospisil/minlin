@@ -3,7 +3,6 @@
    copyright 2013 Timothy Moroney: t.moroney@qut.edu.au
    licensed under BSD license (see LICENSE.txt for details)
 *******************************************************************************/
-//#include <thrust/functional.h>
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
@@ -16,33 +15,45 @@ MINLIN_INIT
 
 int main() {
 
-    int N = 5;
+    int N = 500;
+    int t;
 
     // allocate storage
-    HostVector<double> H(N);
-    DeviceVector<double> D(N);
+    HostVector<double> x(N);
+    HostMatrix<double> A(N,N);
 
-    // initialize input vectors
-    H(0) = 3;  D(0) = 6;
-    H(1) = 4;  D(1) = 7;
-    H(2) = 0;  D(2) = 2;
-    H(3) = 8;  D(3) = 1;
-    H(4) = 2;  D(4) = 8;
+	for(t=0;t<N;t++){
+		/* first row */
+		if(t == 0){
+			A(t,t) = 1.0;
+			A(t,t+1) = -1.0;
+		}
+		/* common row */
+		if(t > 0 && t < N-1){
+			A(t,t+1) = -1.0;
+			A(t,t) = 2.0;
+			A(t,t-1) = -1.0;
+		}
+		/* last row */
+		if(t == N-1){
+			A(t,t-1) = -1.0;
+			A(t,t) = 1.0;
+		}
+		
+		/* vector */
+		x(t) = 1.0 + 1.0/(double)(t+1);
+	}	
 
-    std::cout << H << std::endl;
-    
-    std::cout << D << std::endl;
-    
-    D = H;
-    
-    std::cout << D << std::endl;
+//	std::cout << "A = " << A << std::endl;
+//	std::cout << "x = " << x << std::endl;
 
-//    D(all) = range(1,5);
-    
-    std::cout << range(1,5) << std::endl;
-    
- //   D(all) = 1;
-    
-    std::cout << D << std::endl;
-    
+    HostVector<double> Ax;
+
+	for(t = 0;t < 10;t++){
+		Ax = A*x;
+		std::cout << "norm(Ax)_" << t << " = " << norm(Ax) << std::endl;
+		
+	}
+	
+	
 }
