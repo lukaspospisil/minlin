@@ -11,130 +11,158 @@
 
 using namespace minlin::threx;
 
+#define MY_LENGTH 1000
+
+#define MyVector HostVector
+#define MyMatrix HostMatrix
+#define Scalar double
+
+#define TEST_MINLIN true
+#define TEST_FOR true
+#define TEST_OMP true
+
 MINLIN_INIT
 
-
+/* timer */
 double getUnixTime(void){
 	struct timespec tv;
 	if(clock_gettime(CLOCK_REALTIME, &tv) != 0) return 0;
 	return (((double) tv.tv_sec) + (double) (tv.tv_nsec / 1000000000.0));
 }
 
-
-HostVector<double> my_multiplication_for(HostVector<double> x){
+/* A*x using simple for cycle */
+void my_multiplication_for(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	int N = x.size();
-	HostVector<double> Ax(N);
 	int t;
 
 	for(t=0;t<N;t++){
 		/* first row */
 		if(t == 0){
-			Ax(t) = x(t) - x(t+1);
+			(*Ax)(t) = x(t) - x(t+1);
 		}
 		/* common row */
 		if(t > 0 && t < N-1){
-			Ax(t) = -x(t-1) + 2.0*x(t) - x(t+1);
+			(*Ax)(t) = -x(t-1) + 2.0*x(t) - x(t+1);
 		}
 		/* last row */
 		if(t == N-1){
-			Ax(t) = -x(t-1) + x(t);
+			(*Ax)(t) = -x(t-1) + x(t);
 		}
 	}
-
-    return Ax;	
 }
 
-HostVector<double> my_multiplication_omp(HostVector<double> x){
+void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	int N = x.size();
-	HostVector<double> Ax(N);
 	int t;
 
-	#pragma omp parallel for
+	#pragma omp parallel for 
 	for(t=0;t<N;t++){
 		/* first row */
 		if(t == 0){
-			Ax(t) = x(t) - x(t+1);
+			(*Ax)(t) = x(t) - x(t+1);
 		}
 		/* common row */
 		if(t > 0 && t < N-1){
-			Ax(t) = -x(t-1) + 2.0*x(t) - x(t+1);
+			(*Ax)(t) = -x(t-1) + 2.0*x(t) - x(t+1);
 		}
 		/* last row */
 		if(t == N-1){
-			Ax(t) = -x(t-1) + x(t);
+			(*Ax)(t) = -x(t-1) + x(t);
 		}
 	}
-
-    return Ax;	
 }
 
 
 
 int main() {
 
-    int N = 50000;
+    int N = MY_LENGTH;
+    
     int t;
-
-    // allocate storage
-    HostVector<double> x(N);
-    HostMatrix<double> A(N,N);
 
 	double t_start, t1, t2, t3; /* to measure time */
 
 	/* fill matrix and vector */
-	A(all) = 0.0;
+	t_start = getUnixTime();
+    MyVector<Scalar> x(N);
 	x(all) = 0.0;
 	for(t=0;t<N;t++){
-		/* first row */
-		if(t == 0){
-			A(t,t) = 1.0;
-			A(t,t+1) = -1.0;
-		}
-		/* common row */
-		if(t > 0 && t < N-1){
-			A(t,t+1) = -1.0;
-			A(t,t) = 2.0;
-			A(t,t-1) = -1.0;
-		}
-		/* last row */
-		if(t == N-1){
-			A(t,t-1) = -1.0;
-			A(t,t) = 1.0;
-		}
-		
 		/* vector */
-		x(t) = 1.0 + 1.0/(double)(t+1);
+		x(t) = 1.0 + 1.0/(Scalar)(t+1);
 	}	
+	std::cout << "set values of vector: " << getUnixTime() - t_start << "s" << std::endl;
 
-//	std::cout << "A = " << A << std::endl;
-//	std::cout << "x = " << x << std::endl;
 
-    HostVector<double> Ax1;
-    HostVector<double> Ax2;
-    HostVector<double> Ax3;
+    #if TEST_MINLIN
+		t_start = getUnixTime();
+
+		MyMatrix<Scalar> A(N,N);
+
+		A(all) = 0.0;
+
+		for(t=0;t<N;t++){
+			/* first row */
+			if(t == 0){
+				A(t,t) = 1.0;
+				A(t,t+1) = -1.0;
+			}
+			/* common row */
+			if(t > 0 && t < N-1){
+				A(t,t+1) = -1.0;
+				A(t,t) = 2.0;
+				A(t,t-1) = -1.0;
+			}
+			/* last row */
+			if(t == N-1){
+				A(t,t-1) = -1.0;
+				A(t,t) = 1.0;
+			}
+		}	
+		std::cout << "set values of matrix: " << getUnixTime() - t_start << "s" << std::endl;
+
+	#endif
+
+	std::cout << std::endl;
+
+	/* multiplication test */
+    #if TEST_MINLIN
+		MyVector<Scalar> Ax1(N); /* MINLIN A*x */
+    #endif
+    #if TEST_FOR
+		MyVector<Scalar> Ax2(N); /* A*x using simple for */
+    #endif
+    #if TEST_OMP
+		MyVector<Scalar> Ax3(N); /* A*x using omp */
+	#endif
 
 	for(t = 0;t < 10;t++){
-		t_start = getUnixTime();
-		Ax1 = A*x; 
-		t1 = getUnixTime() - t_start;
-		
-		t_start = getUnixTime();
-		Ax2 = my_multiplication_for(x);
-		t2 = getUnixTime() - t_start;
+	    #if TEST_MINLIN
+			t_start = getUnixTime();
+//			Ax1 = A*x; 
+			Ax1(all) = A*x; 
 
-		t_start = getUnixTime();
-		Ax3 = my_multiplication_omp(x);
-		t3 = getUnixTime() - t_start;
+			t1 = getUnixTime() - t_start;
+			std::cout << "minlin: " << t1 << "s, norm(Ax)_" << t << " = " << norm(Ax1) << std::endl;
+		#endif
+		
+		#if TEST_FOR
+			t_start = getUnixTime();
+			my_multiplication_for(&Ax2,x);
+			t2 = getUnixTime() - t_start;
+			std::cout << "for:    " << t2 << "s, norm(Ax)_" << t << " = " << norm(Ax2) << std::endl;
+		#endif
+		
+		#if TEST_OMP
+			t_start = getUnixTime();
+			my_multiplication_omp(&Ax3,x);
+			t3 = getUnixTime() - t_start;
+			std::cout << "omp:    " << t3 << "s, norm(Ax)_" << t << " = " << norm(Ax3) << std::endl;
+		#endif
 	
 		/* content */
 //		std::cout << "minlin: " << Ax1 << std::endl;	
 //		std::cout << "for:    " << Ax2 << std::endl;	
 //		std::cout << "omp:    " << Ax3 << std::endl;	
-
-		/* norm */
-		std::cout << "minlin: " << t1 << "s, norm(Ax)_" << t << " = " << norm(Ax1) << std::endl;
-		std::cout << "for:    " << t2 << "s, norm(Ax)_" << t << " = " << norm(Ax2) << std::endl;
-		std::cout << "omp:    " << t3 << "s, norm(Ax)_" << t << " = " << norm(Ax3) << std::endl;
 
 		std::cout << "-----------------------------------------------------------" << std::endl;
 

@@ -49,30 +49,30 @@ include_directories(${MINLIN_INCLUDE})
 #link_directories(${THREXBLASROOT})
 
 # MINLIN HOST EXECUTABLE
-add_executable(minlin_host sample_host.cpp)
-target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
-set_property(
-	TARGET minlin_host
-	APPEND
-	PROPERTY INCLUDE_DIRECTORIES
-	${MINLIN_INCLUDE})
-set_target_properties(minlin_host PROPERTIES
-	OUTPUT_NAME output_minlin_host
-	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
-	)
+#add_executable(minlin_host sample_host.cpp)
+#target_link_libraries(minlin_host mkl_core mkl_gnu_thread mkl_rt boost_program_options)
+#set_property(
+#	TARGET minlin_host
+#	APPEND
+#	PROPERTY INCLUDE_DIRECTORIES
+#	${MINLIN_INCLUDE})
+#set_target_properties(minlin_host PROPERTIES
+#	OUTPUT_NAME output_minlin_host
+#	COMPILE_DEFINITIONS "${MINLIN_HOST_DEFS}"
+#	)
 
 # MINLIN DEVICE EXECUTABLE
-#include(FindCUDA)
-#set(CUDA_PROPAGATE_HOST_FLAGS off) # if flags are passed with -Xcompiler, they also affect NVCC which doesn't understand all g++ flags we use
-#set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER}) # without this, cc is used instead of CC and all include paths have to be specified manually
-#string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
-#set(CUDA_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}") # add flags specific to build type
-#string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 from options
-#cuda_include_directories(${MINLIN_INCLUDE})
-#cuda_add_executable(minlin_device sample_device.cu
-#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
-#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-#target_link_libraries(minlin_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-#set_target_properties(minlin_device PROPERTIES
-#	OUTPUT_NAME output_minlin_device
-#	)
+include(FindCUDA)
+set(CUDA_PROPAGATE_HOST_FLAGS off) # if flags are passed with -Xcompiler, they also affect NVCC which doesn't understand all g++ flags we use
+set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER}) # without this, cc is used instead of CC and all include paths have to be specified manually
+string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
+set(CUDA_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}") # add flags specific to build type
+string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 from options
+cuda_include_directories(${MINLIN_INCLUDE})
+cuda_add_executable(minlin_device sample_device.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(minlin_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(minlin_device PROPERTIES
+	OUTPUT_NAME output_minlin_device
+	)
