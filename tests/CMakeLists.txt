@@ -33,7 +33,7 @@ message(STATUS "MINLIN_INCLUDE = ${MINLIN_INCLUDE}")
 set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
 	-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
 	-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA
-	-DUSE_GPU
+#	-DUSE_GPU
 	-DUSE_MINLIN)
 include_directories(${MINLIN_INCLUDE})
 
@@ -46,10 +46,21 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 set(CUDA_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}}") # add flags specific to build type
 string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 from options
 cuda_include_directories(${MINLIN_INCLUDE})
-cuda_add_executable(minlin_device test_matmult.cu
+
+# test matmult
+cuda_add_executable(test_matmult test_matmult.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(minlin_device mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(minlin_device PROPERTIES
+target_link_libraries(test_matmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(test_matmult PROPERTIES
 	OUTPUT_NAME test_matmult
+	)
+
+# test sort
+cuda_add_executable(test_sort test_sort.cu
+	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+target_link_libraries(test_sort mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(test_sort PROPERTIES
+	OUTPUT_NAME test_sort
 	)
