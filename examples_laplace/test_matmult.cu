@@ -9,14 +9,24 @@
 
 #include <iostream>
 
+#include <stdio.h> /* printf in cuda */
+#include <limits> /* max value of double/float */
+
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#include <device_launch_parameters.h>
+#include <device_functions.h>
 
 using namespace minlin::threx;
 
-#define MyVector HostVector
-//#define MyVector DeviceVector
-
-#define MyMatrix HostMatrix
-//#define MyMatrix DeviceMatrix
+/* compute on device or host ? */
+#ifdef USE_GPU
+	#define MyVector DeviceVector
+	#define MyMatrix DeviceMatrix
+#else
+	#define MyVector HostVector
+	#define MyMatrix HostMatrix
+#endif
 
 #define Scalar double
 
@@ -24,8 +34,20 @@ using namespace minlin::threx;
 #define TEST_MINLIN true /* minlin with vectors */
 #define TEST_FOR true /* simple sequential for cycle */
 #define TEST_OMP true /* OpenMP parallel for */
+#define TEST_CUDA true /* Cuda kernels */
 
 MINLIN_INIT
+
+/* cuda error check */
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"\n\x1B[31mCUDA error:\x1B[0m %s %s \x1B[33m%d\x1B[0m\n\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
 
 /* timer */
 double getUnixTime(void){
@@ -94,7 +116,45 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	}
 }
 
+/* A*x using CUDA kernel */
+template <typename T> __global__
+void kernel_mult(T* Axp, T* xp, int N)
+{
+	/* compute my id */
+	int t = blockIdx.x*blockDim.x + threadIdx.x;
 
+	printf("x(%d) = %f\n",t,xp[t]); // TODO: temp
+
+	/* first row */
+	if(t == 0){
+		Axp[t] = xp[t] - xp[t+1];
+	}
+	/* common row */
+	if(t > 0 && t < N-1){
+		Axp[t] = -xp[t-1] + 2.0*xp[t] - xp[t+1];
+	}
+	/* last row */
+	if(t == N-1){
+		Axp[t] = -xp[t-1] + xp[t];
+	}
+
+	/* if t >= N then do nothing */	
+
+}
+
+void my_multiplication_cuda(MyVector<Scalar> *Ax, MyVector<Scalar> x){
+	int N = x.size();
+
+	/* call cuda kernels */
+	/* pass a thrust raw pointers to cuda kernel */
+	Scalar *xp = x.pointer();
+	Scalar *Axp = (*Ax).pointer();
+
+	kernel_mult<<<N, 1>>>(Axp,xp,N);
+
+    gpuErrchk( cudaDeviceSynchronize() );
+
+ }
 
 
 
@@ -179,15 +239,22 @@ int main ( int argc, char *argv[] ) {
     #if TEST_OMP
 		double t_omp = 0.0;
 	#endif
+    #if TEST_CUDA
+		double t_cuda = 0.0;
+	#endif
 
 	/* multiplication test */
 	MyVector<Scalar> Ax(N);
+	
+	/* I want to see the problems with setting the vector values immediately in the norm */
+	/* if I forget to set a component of Ax, then the norm will be huge */
+	Scalar default_value = std::numeric_limits<Scalar>::max(); 
 
 	for(k = 0;k < M;k++){
 		std::cout << k+1 << ". test (of " << M << ")" << std::endl;
 		
 	    #if TEST_MINLIN_FULL
-			Ax(all) = 0.0; /* clean previous results */
+			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
 			my_multiplication_minlin_full(&Ax, A, x);
@@ -200,7 +267,7 @@ int main ( int argc, char *argv[] ) {
 		#endif
 
 	    #if TEST_MINLIN
-			Ax(all) = 0.0; /* clean previous results */
+			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
 			my_multiplication_minlin(&Ax, x);
@@ -213,27 +280,40 @@ int main ( int argc, char *argv[] ) {
 		#endif
 		
 		#if TEST_FOR
-			Ax(all) = 0.0; /* clean previous results */
+			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
 			my_multiplication_for(&Ax, x);
 			t = getUnixTime() - t_start;
 
-			std::cout << " minlin: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
+			std::cout << " for:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
 			t_for += t;
 
 			if(N <= 15) std::cout << "  " << Ax << std::endl;	
 		#endif
 		
 		#if TEST_OMP
-			Ax(all) = 0.0; /* clean previous results */
+			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
 			my_multiplication_omp(&Ax, x);
 			t = getUnixTime() - t_start;
 
-			std::cout << " minlin: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
+			std::cout << " omp:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
 			t_omp += t;
+
+			if(N <= 15) std::cout << "  " << Ax << std::endl;	
+		#endif
+
+		#if TEST_CUDA
+			Ax(all) = default_value; /* clean previous results */
+
+			t_start = getUnixTime();
+			my_multiplication_cuda(&Ax, x);
+			t = getUnixTime() - t_start;
+
+			std::cout << " cuda:   " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
+			t_cuda += t;
 
 			if(N <= 15) std::cout << "  " << Ax << std::endl;	
 		#endif
@@ -261,6 +341,9 @@ int main ( int argc, char *argv[] ) {
 	#endif
     #if TEST_OMP
 		std::cout << "omp:         " << t_omp/(double)M << std::endl;
+	#endif
+    #if TEST_CUDA
+		std::cout << "cuda:        " << t_cuda/(double)M << std::endl;
 	#endif
 
 	
