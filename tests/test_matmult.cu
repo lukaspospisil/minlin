@@ -225,7 +225,8 @@ int main ( int argc, char *argv[] ) {
 	#ifdef USE_GPU
 		/* fill vector using CUDA */
 		// TODO: optimal number of threads/block
-		fill_x<<<N, 1>>>(x,N);
+		Scalar *xp = x.pointer();
+		fill_x<<<N, 1>>>(xp,N);
 		
 	#else
 		/* fill vector using OpenMP */
