@@ -178,6 +178,19 @@ void my_multiplication_cuda(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	gpuErrchk( cudaDeviceSynchronize() );
 }
 
+/* fill vector using CUDA kernel */
+template <typename T> __global__
+void fill_x(T* x, int N)
+{
+	/* compute my id */
+	int t = blockIdx.x*blockDim.x + threadIdx.x;
+
+	if(t < N){
+		x[t] = 1.0 + 1.0/(Scalar)(t+1);;
+	}
+	
+	/* if t >= N then relax and do nothing */	
+}
 
 
 
@@ -209,10 +222,20 @@ int main ( int argc, char *argv[] ) {
 	t_start = getUnixTime();
 	MyVector<Scalar> x(N);
 	x(all) = 0.0;
-	for(k=0;k<N;k++){
-		/* vector */
-		x(k) = 1.0 + 1.0/(Scalar)(k+1);
-	}	
+	#ifdef USE_GPU
+		/* fill vector using CUDA */
+		// TODO: optimal number of threads/block
+		fill_x<<<N, 1>>>(x,N);
+		
+	#else
+		/* fill vector using OpenMP */
+		#pragma omp parallel for 
+		for(k=0;k<N;k++){
+			/* vector */
+			x(k) = 1.0 + 1.0/(Scalar)(k+1);
+		}	
+	#endif
+		
 	std::cout << "init & fill vector: " << getUnixTime() - t_start << "s" << std::endl;
 
 
