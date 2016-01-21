@@ -126,17 +126,17 @@ void kernel_mult(T* Axp, T* xp, int N)
 	printf("x(%d) = %f\n",t,xp[t]); // TODO: temp
 
 	/* first row */
-	if(t == 0){
-		Axp[t] = xp[t] - xp[t+1];
-	}
+//	if(t == 0){
+//		Axp[t] = xp[t] - xp[t+1];
+//	}
 	/* common row */
-	if(t > 0 && t < N-1){
-		Axp[t] = -xp[t-1] + 2.0*xp[t] - xp[t+1];
-	}
+//	if(t > 0 && t < N-1){
+//		Axp[t] = -xp[t-1] + 2.0*xp[t] - xp[t+1];
+//	}
 	/* last row */
-	if(t == N-1){
-		Axp[t] = -xp[t-1] + xp[t];
-	}
+//	if(t == N-1){
+//		Axp[t] = -xp[t-1] + xp[t];
+//	}
 
 	/* if t >= N then do nothing */	
 
