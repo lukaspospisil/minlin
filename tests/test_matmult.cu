@@ -1,8 +1,14 @@
-/*******************************************************************************
-   minlin library.
-   copyright 2013 Timothy Moroney: t.moroney@qut.edu.au
-   licensed under BSD license (see LICENSE.txt for details)
-*******************************************************************************/
+/**
+	Let A be a Laplace (tridiagonal) matrix
+
+    We are interested in the comparison of several ways how to compute A*x with MINLIN:
+    TEST_MINLIN_FULL - create dense minlin-matrix and multiply with it
+    TEST_MINLIN      - use idea from Ben: Ax = -x(..) + 2*x(..) - x(..)
+    TEST_FOR         - use naive sequential "for" cycle
+    TEST_OMP         - run the previous "for" cycle as OpenMP "parallel for"
+    TEST_CUDA        - iteration of "for" cycle is runned as CUDA kernel
+
+**/
 
 #include <minlin/minlin.h>
 #include <minlin/modules/threx/threx.h>
@@ -18,15 +24,6 @@
 #include <device_functions.h>
 
 using namespace minlin::threx;
-
-/*
-    We are interested in the comparison of several ways how to compute A*x:
-    TEST_MINLIN_FULL - create dense minlin-matrix and multiply with it
-    TEST_MINLIN      - use idea from Ben: Ax = -x(..) + 2*x(..) - x(..)
-    TEST_FOR         - use naive sequential "for" cycle
-    TEST_OMP         - run the previous "for" cycle as OpenMP "parallel for"
-    TEST_CUDA        - iteration of "for" cycle is runned as CUDA kernel
-*/
 
 /* compute on device or host ? and which tests to run ? */
 #ifdef USE_GPU
@@ -163,7 +160,7 @@ void kernel_mult(T* Axp, T* xp, int N)
 		Axp[t] = -xp[t-1] + xp[t];
 	}
 
-	/* if t >= N then do nothing */	
+	/* if t >= N then relax and do nothing */	
 
 }
 
