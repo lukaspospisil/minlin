@@ -122,12 +122,10 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	int N = x.size();
 	int t;
 
-	#pragma omp parallel for 
+	int nb_thread = omp_get_thread_num();
+
+	#pragma omp parallel for private(t)
 	for(t=0;t<N;t++){
-		
-		if(t==0){
-			std::cout << "Hello from " << omp_get_thread_num() << ", " << omp_get_thread_num() << std::endl;
-		}
 		
 		/* first row */
 		if(t == 0){
@@ -142,7 +140,7 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 			(*Ax)(t) = -x(t-1) + x(t);
 		}
 	}
-	#pragma omp barrier
+	
 }
 
 /* A*x using CUDA kernel */
@@ -239,12 +237,12 @@ int main ( int argc, char *argv[] ) {
 		
 	#else
 		/* fill vector using OpenMP */
-		#pragma omp parallel for 
+		#pragma omp parallel for private(k)
 		for(k=0;k<N;k++){
 			/* vector */
 			x(k) = 1.0 + 1.0/(Scalar)(k+1);
 		}	
-		#pragma omp barrier
+		
 	#endif
 		
 	std::cout << "init & fill vector: " << getUnixTime() - t_start << "s" << std::endl;
