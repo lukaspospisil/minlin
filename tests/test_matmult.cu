@@ -19,22 +19,44 @@
 
 using namespace minlin::threx;
 
-/* compute on device or host ? */
+/*
+    We are interested in the comparison of several ways how to compute A*x:
+    TEST_MINLIN_FULL - create dense minlin-matrix and multiply with it
+    TEST_MINLIN      - use idea from Ben: Ax = -x(..) + 2*x(..) - x(..)
+    TEST_FOR         - use naive sequential "for" cycle
+    TEST_OMP         - run the previous "for" cycle as OpenMP "parallel for"
+    TEST_CUDA        - iteration of "for" cycle is runned as CUDA kernel
+*/
+
+/* compute on device or host ? and which tests to run ? */
 #ifdef USE_GPU
+	/* compute using CUDA on Device */
+
 	#define MyVector DeviceVector
 	#define MyMatrix DeviceMatrix
+
+	#define TEST_MINLIN_FULL true
+	#define TEST_MINLIN true
+	#define TEST_FOR true
+	#define TEST_OMP false
+	#define TEST_CUDA false
+
 #else
+	/* compute without CUDA on Host */
+
 	#define MyVector HostVector
 	#define MyMatrix HostMatrix
+
+	#define TEST_MINLIN_FULL true
+	#define TEST_MINLIN true
+	#define TEST_FOR true
+	#define TEST_OMP true
+	#define TEST_CUDA false
+
 #endif
 
+/* double/float values in Vector? */
 #define Scalar double
-
-#define TEST_MINLIN_FULL false /* minlin A*x with matrix A */
-#define TEST_MINLIN true /* minlin with vectors */
-#define TEST_FOR true /* simple sequential for cycle */
-#define TEST_OMP true /* OpenMP parallel for */
-#define TEST_CUDA true /* Cuda kernels */
 
 MINLIN_INIT
 
@@ -56,24 +78,26 @@ double getUnixTime(void){
 	return (((double) tv.tv_sec) + (double) (tv.tv_nsec / 1000000000.0));
 }
 
-/* A*x using MINLIN matrix-vector multiplication */
+
+/* A*x using MINLIN matrix-vector multiplication (with dense matrix) */
 void my_multiplication_minlin_full(MyVector<Scalar> *Ax, MyMatrix<Scalar> A, MyVector<Scalar> x){
 	(*Ax) = A*x;
 }
 
-/* A*x using MINLIN with vectors */
+/* A*x using MINLIN with vectors (idea from Ben) */
 void my_multiplication_minlin(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	int N = x.size();
 
 	(*Ax)(1,N-2) = 2*x(1,N-2) - x(0,N-3) - x(2,N-1);
 	
+	/* first and last */
 	(*Ax)(0) = x(0) - x(1);
 	(*Ax)(N-1) = x(N-1) - x(N-2);
 	
 }
 
 
-/* A*x using simple for cycle */
+/* A*x using simple sequential "for" cycle */
 void my_multiplication_for(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 	int N = x.size();
 	int t;
@@ -123,20 +147,21 @@ void kernel_mult(T* Axp, T* xp, int N)
 	/* compute my id */
 	int t = blockIdx.x*blockDim.x + threadIdx.x;
 
-	printf("x(%d) = %f\n",t,xp[t]); // TODO: temp
+	/* test access to array with vector values */
+//	printf("x(%d) = %f\n",t,xp[t]);
 
 	/* first row */
-//	if(t == 0){
-//		Axp[t] = xp[t] - xp[t+1];
-//	}
+	if(t == 0){
+		Axp[t] = xp[t] - xp[t+1];
+	}
 	/* common row */
-//	if(t > 0 && t < N-1){
-//		Axp[t] = -xp[t-1] + 2.0*xp[t] - xp[t+1];
-//	}
+	if(t > 0 && t < N-1){
+		Axp[t] = -xp[t-1] + 2.0*xp[t] - xp[t+1];
+	}
 	/* last row */
-//	if(t == N-1){
-//		Axp[t] = -xp[t-1] + xp[t];
-//	}
+	if(t == N-1){
+		Axp[t] = -xp[t-1] + xp[t];
+	}
 
 	/* if t >= N then do nothing */	
 
@@ -147,14 +172,14 @@ void my_multiplication_cuda(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 
 	/* call cuda kernels */
 	/* pass a thrust raw pointers to cuda kernel */
-	Scalar *xp = x.pointer();
+	Scalar *xp = x.pointer(); /* thank minlin for this function! */
 	Scalar *Axp = (*Ax).pointer();
 
 	kernel_mult<<<N, 1>>>(Axp,xp,N);
 
-    gpuErrchk( cudaDeviceSynchronize() );
-
- }
+	/* synchronize kernels, if there is an error with cuda, then it will appear here */ 
+	gpuErrchk( cudaDeviceSynchronize() );
+}
 
 
 
@@ -172,10 +197,10 @@ int main ( int argc, char *argv[] ) {
 	}
 
 	int k; /* iterator */
-	int N = atoi(argv[1]); /* the first argument is the dimension of problem */	
+	int N = atoi(argv[1]); /* the first argument is the dimension of problem */
 	std::cout << "N = " << N << " (dimension)" << std::endl;
 
-	int M = 10; /* number of tests */
+	int M = 10; /* default number of tests */
 	if(argc >= 3){
 		M = atoi(argv[2]); /* the second (optional) argument is the number of tests */
 	}
@@ -185,7 +210,7 @@ int main ( int argc, char *argv[] ) {
 
 	/* fill vector with some values */
 	t_start = getUnixTime();
-    MyVector<Scalar> x(N);
+	MyVector<Scalar> x(N);
 	x(all) = 0.0;
 	for(k=0;k<N;k++){
 		/* vector */
@@ -195,7 +220,7 @@ int main ( int argc, char *argv[] ) {
 
 
 	/* if it is MINLIN_FULL test, create&fill the matrix */
-    #if TEST_MINLIN_FULL
+	#if TEST_MINLIN_FULL
 		t_start = getUnixTime();
 
 		MyMatrix<Scalar> A(N,N);
@@ -227,19 +252,20 @@ int main ( int argc, char *argv[] ) {
 	std::cout << std::endl;
 
 	/* to compute average time of each algorithm */
-    #if TEST_MINLIN_FULL
+	/* these variables store the sum of computing times */
+	#if TEST_MINLIN_FULL
 		double t_minlin_full = 0.0;
 	#endif
-    #if TEST_MINLIN
+	#if TEST_MINLIN
 		double t_minlin = 0.0;
 	#endif
-    #if TEST_FOR
+	#if TEST_FOR
 		double t_for = 0.0;
 	#endif
-    #if TEST_OMP
+	#if TEST_OMP
 		double t_omp = 0.0;
 	#endif
-    #if TEST_CUDA
+	#if TEST_CUDA
 		double t_cuda = 0.0;
 	#endif
 
@@ -250,10 +276,10 @@ int main ( int argc, char *argv[] ) {
 	/* if I forget to set a component of Ax, then the norm will be huge */
 	Scalar default_value = std::numeric_limits<Scalar>::max(); 
 
-	for(k = 0;k < M;k++){
+	for(k = 0;k < M;k++){ /* for every test */
 		std::cout << k+1 << ". test (of " << M << ")" << std::endl;
 		
-	    #if TEST_MINLIN_FULL
+		#if TEST_MINLIN_FULL
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
@@ -263,10 +289,11 @@ int main ( int argc, char *argv[] ) {
 			std::cout << " minlin_full: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
 			t_minlin_full += t;
 
+			/* if the dimension is small, then show also the content */
 			if(N <= 15) std::cout << "  " << Ax << std::endl;	
 		#endif
 
-	    #if TEST_MINLIN
+		#if TEST_MINLIN
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
@@ -302,7 +329,7 @@ int main ( int argc, char *argv[] ) {
 			std::cout << " omp:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
 			t_omp += t;
 
-			if(N <= 15) std::cout << "  " << Ax << std::endl;	
+			if(N <= 15) std::cout << "  " << Ax << std::endl;
 		#endif
 
 		#if TEST_CUDA
@@ -330,19 +357,20 @@ int main ( int argc, char *argv[] ) {
 	std::cout << "M = " << M << " (number of tests)" << std::endl;
 	std::cout << "average times:" << std::endl;
 
-    #if TEST_MINLIN_FULL
+	/* compute and show average computing times */
+	#if TEST_MINLIN_FULL
 		std::cout << "minlin_full: " << t_minlin_full/(double)M << std::endl;
 	#endif
-    #if TEST_MINLIN
+	#if TEST_MINLIN
 		std::cout << "minlin:      " << t_minlin/(double)M << std::endl;
 	#endif
-    #if TEST_FOR
+	#if TEST_FOR
 		std::cout << "for:         " << t_for/(double)M << std::endl;
 	#endif
-    #if TEST_OMP
+	#if TEST_OMP
 		std::cout << "omp:         " << t_omp/(double)M << std::endl;
 	#endif
-    #if TEST_CUDA
+	#if TEST_CUDA
 		std::cout << "cuda:        " << t_cuda/(double)M << std::endl;
 	#endif
 
