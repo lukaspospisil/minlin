@@ -18,6 +18,8 @@
 #include <stdio.h> /* printf in cuda */
 #include <limits> /* max value of double/float */
 
+#include <omp.h>
+
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
@@ -32,11 +34,11 @@ using namespace minlin::threx;
 	#define MyVector DeviceVector
 	#define MyMatrix DeviceMatrix
 
-	#define TEST_MINLIN_FULL true
+	#define TEST_MINLIN_FULL false
 	#define TEST_MINLIN true
-	#define TEST_FOR true
+	#define TEST_FOR false
 	#define TEST_OMP false
-	#define TEST_CUDA false
+	#define TEST_CUDA true
 
 #else
 	/* compute without CUDA on Host */
@@ -44,7 +46,7 @@ using namespace minlin::threx;
 	#define MyVector HostVector
 	#define MyMatrix HostMatrix
 
-	#define TEST_MINLIN_FULL true
+	#define TEST_MINLIN_FULL false
 	#define TEST_MINLIN true
 	#define TEST_FOR true
 	#define TEST_OMP true
@@ -122,6 +124,11 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 
 	#pragma omp parallel for 
 	for(t=0;t<N;t++){
+		
+		if(t==0){
+			std::cout << "Hello from " << omp_get_thread_num() << ", " << omp_get_thread_num() << std::endl;
+		}
+		
 		/* first row */
 		if(t == 0){
 			(*Ax)(t) = x(t) - x(t+1);
@@ -135,6 +142,7 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 			(*Ax)(t) = -x(t-1) + x(t);
 		}
 	}
+	#pragma omp barrier
 }
 
 /* A*x using CUDA kernel */
@@ -227,6 +235,7 @@ int main ( int argc, char *argv[] ) {
 		// TODO: optimal number of threads/block
 		Scalar *xp = x.pointer();
 		fill_x<<<N, 1>>>(xp,N);
+		gpuErrchk( cudaDeviceSynchronize() );
 		
 	#else
 		/* fill vector using OpenMP */
@@ -235,6 +244,7 @@ int main ( int argc, char *argv[] ) {
 			/* vector */
 			x(k) = 1.0 + 1.0/(Scalar)(k+1);
 		}	
+		#pragma omp barrier
 	#endif
 		
 	std::cout << "init & fill vector: " << getUnixTime() - t_start << "s" << std::endl;
@@ -350,7 +360,8 @@ int main ( int argc, char *argv[] ) {
 			std::cout << " omp:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
 			t_omp += t;
 
-			if(N <= 15) std::cout << "  " << Ax << std::endl;
+			if (N <= 15) std::cout << "  " << Ax << std::endl;
+
 		#endif
 
 		#if TEST_CUDA
