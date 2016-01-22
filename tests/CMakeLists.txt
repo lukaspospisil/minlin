@@ -48,19 +48,28 @@ string(REPLACE "-std=c++11" "" CUDA_CXX_FLAGS ${CUDA_CXX_FLAGS}) # remove C++11 
 cuda_include_directories(${MINLIN_INCLUDE})
 
 # test matmult
-cuda_add_executable(test_matmult test_matmult.cu
-	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
-	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(test_matmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(test_matmult PROPERTIES
-	OUTPUT_NAME test_matmult
-	)
+#cuda_add_executable(test_matmult test_matmult.cu
+#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+#target_link_libraries(test_matmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+#set_target_properties(test_matmult PROPERTIES
+#	OUTPUT_NAME test_matmult
+#	)
 
 # test sort
-cuda_add_executable(test_sort test_sort.cu
+#cuda_add_executable(test_sort test_sort.cu
+#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+#target_link_libraries(test_sort mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+#set_target_properties(test_sort PROPERTIES
+#	OUTPUT_NAME test_sort
+#	)
+
+# test blockmatmult
+cuda_add_executable(test_blockmatmult test_blockmatmult.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(test_sort mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(test_sort PROPERTIES
-	OUTPUT_NAME test_sort
+target_link_libraries(test_blockmatmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(test_blockmatmult PROPERTIES
+	OUTPUT_NAME test_blockmatmult
 	)
