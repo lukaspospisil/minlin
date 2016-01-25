@@ -36,7 +36,7 @@ using namespace minlin::threx;
 
 	#define TEST_MINLIN_FULL false
 	#define TEST_MINLIN true
-	#define TEST_FOR false
+	#define TEST_FOR true
 	#define TEST_OMP false
 	#define TEST_CUDA true
 
@@ -158,8 +158,8 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x, int K){
 }
 
 /* A*x using CUDA kernel */
-template <typename T> __global__
-void kernel_mult(T* Axp, T* xp, int T, int K)
+template <typename TT> __global__
+void kernel_mult(TT* Axp, TT* xp, int T, int K)
 {
 	/* compute my id */
 	int t = blockIdx.x*blockDim.x + threadIdx.x;
