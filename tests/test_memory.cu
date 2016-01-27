@@ -1,12 +1,5 @@
 /**
-	Let A be a Laplace (tridiagonal) matrix
-
-    We are interested in the comparison of several ways how to compute A*x with MINLIN:
-    TEST_MINLIN_FULL - create dense minlin-matrix and multiply with it
-    TEST_MINLIN      - use idea from Ben: Ax = -x(..) + 2*x(..) - x(..)
-    TEST_FOR         - use naive sequential "for" cycle
-    TEST_OMP         - run the previous "for" cycle as OpenMP "parallel for"
-    TEST_CUDA        - iteration of "for" cycle is runned as CUDA kernel
+	test how large vectors could be stored in memory of CPU/GPU
 
 **/
 
@@ -32,25 +25,17 @@ using namespace minlin::threx;
 	/* compute using CUDA on Device */
 
 	#define MyVector DeviceVector
-	#define MyMatrix DeviceMatrix
 
-	#define TEST_MINLIN_FULL false
-	#define TEST_MINLIN true
-	#define TEST_FOR false
-	#define TEST_OMP false
-	#define TEST_CUDA true
+	#define TEST_CPU false
+	#define TEST_GPU true
 
 #else
 	/* compute without CUDA on Host */
 
 	#define MyVector HostVector
-	#define MyMatrix HostMatrix
 
-	#define TEST_MINLIN_FULL false
-	#define TEST_MINLIN true
-	#define TEST_FOR true
-	#define TEST_OMP true
-	#define TEST_CUDA false
+	#define TEST_CPU true
+	#define TEST_GPU false
 
 #endif
 
@@ -59,16 +44,6 @@ using namespace minlin::threx;
 
 MINLIN_INIT
 
-/* cuda error check */
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess) 
-   {
-      fprintf(stderr,"\n\x1B[31mCUDA error:\x1B[0m %s %s \x1B[33m%d\x1B[0m\n\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
 
 /* timer */
 double getUnixTime(void){
@@ -76,129 +51,6 @@ double getUnixTime(void){
 	if(clock_gettime(CLOCK_REALTIME, &tv) != 0) return 0;
 	return (((double) tv.tv_sec) + (double) (tv.tv_nsec / 1000000000.0));
 }
-
-
-/* A*x using MINLIN matrix-vector multiplication (with dense matrix) */
-void my_multiplication_minlin_full(MyVector<Scalar> *Ax, MyMatrix<Scalar> A, MyVector<Scalar> x){
-	(*Ax) = A*x;
-}
-
-/* A*x using MINLIN with vectors (idea from Ben) */
-void my_multiplication_minlin(MyVector<Scalar> *Ax, MyVector<Scalar> x){
-	int N = x.size();
-
-	(*Ax)(1,N-2) = 2*x(1,N-2) - x(0,N-3) - x(2,N-1);
-	
-	/* first and last */
-	(*Ax)(0) = x(0) - x(1);
-	(*Ax)(N-1) = x(N-1) - x(N-2);
-	
-}
-
-
-/* A*x using simple sequential "for" cycle */
-void my_multiplication_for(MyVector<Scalar> *Ax, MyVector<Scalar> x){
-	int N = x.size();
-	int t;
-
-	for(t=0;t<N;t++){
-		/* first row */
-		if(t == 0){
-			(*Ax)(t) = x(t) - x(t+1);
-		}
-		/* common row */
-		if(t > 0 && t < N-1){
-			(*Ax)(t) = -x(t-1) + 2.0*x(t) - x(t+1);
-		}
-		/* last row */
-		if(t == N-1){
-			(*Ax)(t) = -x(t-1) + x(t);
-		}
-	}
-}
-
-/* A*x using OpenMP */
-void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
-	int N = x.size();
-	int t;
-
-	int nb_thread = omp_get_thread_num();
-
-	#pragma omp parallel for private(t)
-	for(t=0;t<N;t++){
-		
-		/* first row */
-		if(t == 0){
-			(*Ax)(t) = x(t) - x(t+1);
-		}
-		/* common row */
-		if(t > 0 && t < N-1){
-			(*Ax)(t) = -x(t-1) + 2.0*x(t) - x(t+1);
-		}
-		/* last row */
-		if(t == N-1){
-			(*Ax)(t) = -x(t-1) + x(t);
-		}
-	}
-	
-}
-
-/* A*x using CUDA kernel */
-template <typename T> __global__
-void kernel_mult(T* Axp, T* xp, int N)
-{
-	/* compute my id */
-	int t = blockIdx.x*blockDim.x + threadIdx.x;
-
-	/* test access to array with vector values */
-//	printf("x(%d) = %f\n",t,xp[t]);
-
-	/* first row */
-	if(t == 0){
-		Axp[t] = xp[t] - xp[t+1];
-	}
-	/* common row */
-	if(t > 0 && t < N-1){
-		Axp[t] = -xp[t-1] + 2.0*xp[t] - xp[t+1];
-	}
-	/* last row */
-	if(t == N-1){
-		Axp[t] = -xp[t-1] + xp[t];
-	}
-
-	/* if t >= N then relax and do nothing */	
-
-}
-
-void my_multiplication_cuda(MyVector<Scalar> *Ax, MyVector<Scalar> x){
-	int N = x.size();
-
-	/* call cuda kernels */
-	/* pass a thrust raw pointers to cuda kernel */
-	Scalar *xp = x.pointer(); /* thank minlin for this function! */
-	Scalar *Axp = (*Ax).pointer();
-
-	kernel_mult<<<N, 1>>>(Axp,xp,N);
-
-	/* synchronize kernels, if there is an error with cuda, then it will appear here */ 
-	gpuErrchk( cudaDeviceSynchronize() );
-}
-
-/* fill vector using CUDA kernel */
-template <typename T> __global__
-void fill_x(T* x, int N)
-{
-	/* compute my id */
-	int t = blockIdx.x*blockDim.x + threadIdx.x;
-
-	if(t < N){
-		x[t] = 1.0 + 1.0/(Scalar)(t+1);;
-	}
-	
-	/* if t >= N then relax and do nothing */	
-}
-
-
 
 int main ( int argc, char *argv[] ) {
 
@@ -226,6 +78,8 @@ int main ( int argc, char *argv[] ) {
 
 	/* fill vector with some values */
 	t_start = getUnixTime();
+
+
 	MyVector<Scalar> x(N);
 	x(all) = 0.0;
 	#ifdef USE_GPU
@@ -312,7 +166,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_minlin_full(&Ax, A, x);
+			my_multiplication_minlin_full(Ax, A, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " minlin_full: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -326,7 +180,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_minlin(&Ax, x);
+			my_multiplication_minlin(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " minlin: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -339,7 +193,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_for(&Ax, x);
+			my_multiplication_for(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " for:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -352,7 +206,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_omp(&Ax, x);
+			my_multiplication_omp(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " omp:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -366,7 +220,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_cuda(&Ax, x);
+			my_multiplication_cuda(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " cuda:   " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
