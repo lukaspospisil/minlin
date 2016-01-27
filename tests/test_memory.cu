@@ -95,7 +95,7 @@ int main ( int argc, char *argv[] ) {
 			x_cpu(all) = 1.0;
 			t = getUnixTime() - t_start;
 
-			std::cout << " cpu: " << t << "s, size = " << x_cpu.size()*sizeof(Scalar) << std::endl;
+			std::cout << " cpu: " << t << "s, norm(x) = " << norm(x_cpu) << ", size = " << x_cpu.size()*sizeof(Scalar) << std::endl;
 			t_cpu += t;
 
 			/* if the dimension is small, then show also the content */
@@ -110,7 +110,7 @@ int main ( int argc, char *argv[] ) {
 			x_gpu(all) = 1.0;
 			t = getUnixTime() - t_start;
 
-			std::cout << " gpu: " << t << "s, size = " << x_gpu.size()*sizeof(Scalar) << std::endl;
+			std::cout << " gpu: " << t << "s, norm(x) = " << norm(x_gpu) << ", size = " << x_gpu.size()*sizeof(Scalar) << std::endl;
 			t_gpu += t;
 
 			/* if the dimension is small, then show also the content */
