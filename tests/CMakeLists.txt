@@ -10,6 +10,9 @@
 project(MINLIN_SAMPLE)
 cmake_minimum_required(VERSION 2.8)
 
+#load options from command line
+option(USE_GPU "USE_GPU" ON)
+
 # set default build type
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
@@ -30,11 +33,23 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 # MINLIN: define variables for include directories
 set(MINLIN_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 message(STATUS "MINLIN_INCLUDE = ${MINLIN_INCLUDE}")
-set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
-	-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
-	-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA
-	-DUSE_GPU
-	-DUSE_MINLIN)
+
+if(${USE_GPU})
+	message(STATUS "${Red}The code is compiled to run on GPU${ColourReset}")
+	set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
+		-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
+		-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA
+		-DUSE_GPU
+		-DUSE_MINLIN)
+else(${USE_GPU})
+	message(STATUS "${Red}The code is compiled to run on CPU${ColourReset}")
+	set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
+		-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
+		-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA
+		-DUSE_MINLIN)
+endif(${USE_GPU})
+
+
 include_directories(${MINLIN_INCLUDE})
 
 
