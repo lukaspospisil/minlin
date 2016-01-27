@@ -77,11 +77,11 @@ int main ( int argc, char *argv[] ) {
 	/* these variables store the sum of computing times */
 	#if TEST_CPU
 		double t_cpu = 0.0;
-		HostVector<Scalar> x_cpu;
+		HostVector<Scalar> *x_cpu;
 	#endif
 	#if TEST_GPU
 		double t_gpu = 0.0;
-		DeviceVector<Scalar> x_gpu;
+		DeviceVector<Scalar> *x_gpu;
 	#endif
 
 
@@ -91,31 +91,33 @@ int main ( int argc, char *argv[] ) {
 		#if TEST_CPU
 
 			t_start = getUnixTime();
-			x_cpu = HostVector<Scalar>(N);
-			x_cpu(all) = 1.0;
+			x_cpu = new HostVector<Scalar>(N);
+			(*x_cpu)(all) = 1.0;
 			t = getUnixTime() - t_start;
 
-			std::cout << " cpu: " << t << "s, norm(x) = " << norm(x_cpu) << ", size = " << x_cpu.size()*sizeof(Scalar) << std::endl;
+			std::cout << " cpu: " << t << "s, norm(x) = " << norm(*x_cpu) << ", size = " << (*x_cpu).size()*sizeof(Scalar) << std::endl;
 			t_cpu += t;
 
 			/* if the dimension is small, then show also the content */
-			if(N <= 15) std::cout << "x_cpu:" << "  " << x_cpu << std::endl;	
+			if(N <= 15) std::cout << "x_cpu:" << "  " << *x_cpu << std::endl;	
 
+			free(x_cpu);
 		#endif
 
 		#if TEST_GPU
 
 			t_start = getUnixTime();
-			x_gpu = DeviceVector<Scalar>(N);
-			x_gpu(all) = 1.0;
+			x_gpu = new DeviceVector<Scalar>(N);
+			(*x_gpu)(all) = 1.0;
 			t = getUnixTime() - t_start;
 
-			std::cout << " gpu: " << t << "s, norm(x) = " << norm(x_gpu) << ", size = " << x_gpu.size()*sizeof(Scalar) << std::endl;
+			std::cout << " gpu: " << t << "s, norm(x) = " << norm(*x_gpu) << ", size = " << (*x_gpu).size()*sizeof(Scalar) << std::endl;
 			t_gpu += t;
 
 			/* if the dimension is small, then show also the content */
-			if(N <= 15) std::cout << "x_gpu:" << "  " << x_gpu << std::endl;	
+			if(N <= 15) std::cout << "x_gpu:" << "  " << *x_gpu << std::endl;	
 			
+			free(x_gpu);
 		#endif
 
 		std::cout << "-----------------------------------------------------------" << std::endl;
