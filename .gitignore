@@ -11,3 +11,5 @@ nbproject
 *.a
 *.exe
 *.sh
+
+tests/build

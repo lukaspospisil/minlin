@@ -81,10 +81,19 @@ cuda_include_directories(${MINLIN_INCLUDE})
 #	)
 
 # test blockmatmult
-cuda_add_executable(test_blockmatmult test_blockmatmult.cu
+#cuda_add_executable(test_blockmatmult test_blockmatmult.cu
+#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+#target_link_libraries(test_blockmatmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+#set_target_properties(test_blockmatmult PROPERTIES
+#	OUTPUT_NAME test_blockmatmult
+#	)
+
+# test memory
+cuda_add_executable(test_memory test_memory.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(test_blockmatmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(test_blockmatmult PROPERTIES
-	OUTPUT_NAME test_blockmatmult
+target_link_libraries(test_memory mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(test_memory PROPERTIES
+	OUTPUT_NAME test_memory
 	)
