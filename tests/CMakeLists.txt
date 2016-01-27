@@ -90,10 +90,19 @@ cuda_include_directories(${MINLIN_INCLUDE})
 #	)
 
 # test memory
-cuda_add_executable(test_memory test_memory.cu
+#cuda_add_executable(test_memory test_memory.cu
+#	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
+#	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+#target_link_libraries(test_memory mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+#set_target_properties(test_memory PROPERTIES
+#	OUTPUT_NAME test_memory
+#	)
+
+# test transfer
+cuda_add_executable(test_transfer test_transfer.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-target_link_libraries(test_memory mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
-set_target_properties(test_memory PROPERTIES
-	OUTPUT_NAME test_memory
+target_link_libraries(test_transfer mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas)
+set_target_properties(test_transfer PROPERTIES
+	OUTPUT_NAME test_transfer
 	)
