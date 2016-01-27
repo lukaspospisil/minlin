@@ -77,11 +77,13 @@ int main ( int argc, char *argv[] ) {
 	/* these variables store the sum of computing times */
 	#if TEST_CPU
 		double t_cpu = 0.0;
-		HostVector<Scalar> *x_cpu;
+		HostVector<Scalar> *x_cpu = new HostVector<Scalar>(N);
+		free(x_cpu);
 	#endif
 	#if TEST_GPU
 		double t_gpu = 0.0;
-		DeviceVector<Scalar> *x_gpu;
+		DeviceVector<Scalar> *x_gpu = new DeviceVector<Scalar>(N);
+		free(x_gpu);
 	#endif
 
 
