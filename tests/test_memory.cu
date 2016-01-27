@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include <stdio.h> /* printf in cuda */
+#include <stdlib.h> /* atoi, strtol */
 #include <limits> /* max value of double/float */
 
 #include <omp.h>
@@ -61,7 +62,7 @@ int main ( int argc, char *argv[] ) {
 	}
 
 	int k; /* iterator */
-	int N = atoi(argv[1]); /* the first argument is the dimension of problem */
+	long int N = strtol(argv[1],NULL,0); /* the first argument is the dimension of problem */
 	std::cout << "N = " << N << " (dimension)" << std::endl;
 
 	int M = 10; /* default number of tests */
@@ -77,13 +78,15 @@ int main ( int argc, char *argv[] ) {
 	/* these variables store the sum of computing times */
 	#if TEST_CPU
 		double t_cpu = 0.0;
-		HostVector<Scalar> *x_cpu = new HostVector<Scalar>(N);
-		free(x_cpu);
+		HostVector<Scalar> *x_cpu;
+		x_cpu = new HostVector<Scalar>(N);
+		delete x_cpu;
 	#endif
 	#if TEST_GPU
 		double t_gpu = 0.0;
-		DeviceVector<Scalar> *x_gpu = new DeviceVector<Scalar>(N);
-		free(x_gpu);
+		DeviceVector<Scalar> *x_gpu;
+		x_gpu = new DeviceVector<Scalar>(N);
+		delete x_gpu;
 	#endif
 
 
@@ -103,7 +106,7 @@ int main ( int argc, char *argv[] ) {
 			/* if the dimension is small, then show also the content */
 			if(N <= 15) std::cout << "x_cpu:" << "  " << *x_cpu << std::endl;	
 
-			free(x_cpu);
+			delete x_cpu;
 		#endif
 
 		#if TEST_GPU
@@ -119,7 +122,7 @@ int main ( int argc, char *argv[] ) {
 			/* if the dimension is small, then show also the content */
 			if(N <= 15) std::cout << "x_gpu:" << "  " << *x_gpu << std::endl;	
 			
-			free(x_gpu);
+			delete x_gpu;
 		#endif
 
 		std::cout << "-----------------------------------------------------------" << std::endl;
