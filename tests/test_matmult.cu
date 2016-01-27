@@ -115,6 +115,7 @@ void my_multiplication_for(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 			(*Ax)(t) = -x(t-1) + x(t);
 		}
 	}
+
 }
 
 /* A*x using OpenMP */
