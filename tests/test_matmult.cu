@@ -79,47 +79,47 @@ double getUnixTime(void){
 
 
 /* A*x using MINLIN matrix-vector multiplication (with dense matrix) */
-void my_multiplication_minlin_full(MyVector<Scalar> *Ax, MyMatrix<Scalar> A, MyVector<Scalar> x){
-	(*Ax) = A*x;
+void my_multiplication_minlin_full(MyVector<Scalar> &Ax, MyMatrix<Scalar> A, MyVector<Scalar> x){
+	Ax = A*x;
 }
 
 /* A*x using MINLIN with vectors (idea from Ben) */
-void my_multiplication_minlin(MyVector<Scalar> *Ax, MyVector<Scalar> x){
+void my_multiplication_minlin(MyVector<Scalar>& Ax, MyVector<Scalar> x){
 	int N = x.size();
 
-	(*Ax)(1,N-2) = 2*x(1,N-2) - x(0,N-3) - x(2,N-1);
+	Ax(1,N-2) = 2*x(1,N-2) - x(0,N-3) - x(2,N-1);
 	
 	/* first and last */
-	(*Ax)(0) = x(0) - x(1);
-	(*Ax)(N-1) = x(N-1) - x(N-2);
+	Ax(0) = x(0) - x(1);
+	Ax(N-1) = x(N-1) - x(N-2);
 	
 }
 
 
 /* A*x using simple sequential "for" cycle */
-void my_multiplication_for(MyVector<Scalar> *Ax, MyVector<Scalar> x){
+void my_multiplication_for(MyVector<Scalar> &Ax, MyVector<Scalar> x){
 	int N = x.size();
 	int t;
 
 	for(t=0;t<N;t++){
 		/* first row */
 		if(t == 0){
-			(*Ax)(t) = x(t) - x(t+1);
+			Ax(t) = x(t) - x(t+1);
 		}
 		/* common row */
 		if(t > 0 && t < N-1){
-			(*Ax)(t) = -x(t-1) + 2.0*x(t) - x(t+1);
+			Ax(t) = -x(t-1) + 2.0*x(t) - x(t+1);
 		}
 		/* last row */
 		if(t == N-1){
-			(*Ax)(t) = -x(t-1) + x(t);
+			Ax(t) = -x(t-1) + x(t);
 		}
 	}
 
 }
 
 /* A*x using OpenMP */
-void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
+void my_multiplication_omp(MyVector<Scalar>& Ax, MyVector<Scalar> x){
 	int N = x.size();
 	int t;
 
@@ -130,15 +130,15 @@ void my_multiplication_omp(MyVector<Scalar> *Ax, MyVector<Scalar> x){
 		
 		/* first row */
 		if(t == 0){
-			(*Ax)(t) = x(t) - x(t+1);
+			Ax(t) = x(t) - x(t+1);
 		}
 		/* common row */
 		if(t > 0 && t < N-1){
-			(*Ax)(t) = -x(t-1) + 2.0*x(t) - x(t+1);
+			Ax(t) = -x(t-1) + 2.0*x(t) - x(t+1);
 		}
 		/* last row */
 		if(t == N-1){
-			(*Ax)(t) = -x(t-1) + x(t);
+			Ax(t) = -x(t-1) + x(t);
 		}
 	}
 	
@@ -171,13 +171,13 @@ void kernel_mult(T* Axp, T* xp, int N)
 
 }
 
-void my_multiplication_cuda(MyVector<Scalar> *Ax, MyVector<Scalar> x){
+void my_multiplication_cuda(MyVector<Scalar>& Ax, MyVector<Scalar> x){
 	int N = x.size();
 
 	/* call cuda kernels */
 	/* pass a thrust raw pointers to cuda kernel */
 	Scalar *xp = x.pointer(); /* thank minlin for this function! */
-	Scalar *Axp = (*Ax).pointer();
+	Scalar *Axp = Ax.pointer();
 
 	kernel_mult<<<N, 1>>>(Axp,xp,N);
 
@@ -313,7 +313,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_minlin_full(&Ax, A, x);
+			my_multiplication_minlin_full(Ax, A, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " minlin_full: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -327,7 +327,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_minlin(&Ax, x);
+			my_multiplication_minlin(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " minlin: " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -340,7 +340,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_for(&Ax, x);
+			my_multiplication_for(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " for:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -353,7 +353,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_omp(&Ax, x);
+			my_multiplication_omp(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " omp:    " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
@@ -367,7 +367,7 @@ int main ( int argc, char *argv[] ) {
 			Ax(all) = default_value; /* clean previous results */
 
 			t_start = getUnixTime();
-			my_multiplication_cuda(&Ax, x);
+			my_multiplication_cuda(Ax, x);
 			t = getUnixTime() - t_start;
 
 			std::cout << " cuda:   " << t << "s, norm(Ax) = " << norm(Ax) << std::endl;
