@@ -34,9 +34,9 @@ using namespace minlin::threx;
 	#define MyVector DeviceVector
 	#define MyMatrix DeviceMatrix
 
-	#define TEST_MINLIN_FULL false
+	#define TEST_MINLIN_FULL true
 	#define TEST_MINLIN true
-	#define TEST_FOR false
+	#define TEST_FOR true
 	#define TEST_OMP false
 	#define TEST_CUDA true
 
@@ -46,7 +46,7 @@ using namespace minlin::threx;
 	#define MyVector HostVector
 	#define MyMatrix HostMatrix
 
-	#define TEST_MINLIN_FULL false
+	#define TEST_MINLIN_FULL true
 	#define TEST_MINLIN true
 	#define TEST_FOR true
 	#define TEST_OMP true
@@ -79,12 +79,12 @@ double getUnixTime(void){
 
 
 /* A*x using MINLIN matrix-vector multiplication (with dense matrix) */
-void my_multiplication_minlin_full(MyVector<Scalar> &Ax, MyMatrix<Scalar> A, MyVector<Scalar> x){
+void my_multiplication_minlin_full(MyVector<Scalar> &Ax, const MyMatrix<Scalar> A, const MyVector<Scalar> x){
 	Ax = A*x;
 }
 
 /* A*x using MINLIN with vectors (idea from Ben) */
-void my_multiplication_minlin(MyVector<Scalar>& Ax, MyVector<Scalar> x){
+void my_multiplication_minlin(MyVector<Scalar>& Ax, const MyVector<Scalar> x){
 	int N = x.size();
 
 	Ax(1,N-2) = 2*x(1,N-2) - x(0,N-3) - x(2,N-1);
@@ -97,7 +97,7 @@ void my_multiplication_minlin(MyVector<Scalar>& Ax, MyVector<Scalar> x){
 
 
 /* A*x using simple sequential "for" cycle */
-void my_multiplication_for(MyVector<Scalar> &Ax, MyVector<Scalar> x){
+void my_multiplication_for(MyVector<Scalar> &Ax, const MyVector<Scalar> x){
 	int N = x.size();
 	int t;
 
@@ -119,7 +119,7 @@ void my_multiplication_for(MyVector<Scalar> &Ax, MyVector<Scalar> x){
 }
 
 /* A*x using OpenMP */
-void my_multiplication_omp(MyVector<Scalar>& Ax, MyVector<Scalar> x){
+void my_multiplication_omp(MyVector<Scalar>& Ax, const MyVector<Scalar> x){
 	int N = x.size();
 	int t;
 
@@ -146,7 +146,7 @@ void my_multiplication_omp(MyVector<Scalar>& Ax, MyVector<Scalar> x){
 
 /* A*x using CUDA kernel */
 template <typename T> __global__
-void kernel_mult(T* Axp, T* xp, int N)
+void kernel_mult(T* Axp, const T* xp, int N)
 {
 	/* compute my id */
 	int t = blockIdx.x*blockDim.x + threadIdx.x;
