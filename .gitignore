@@ -13,3 +13,4 @@ nbproject
 *.sh
 
 tests/build
+tests_petsc/build
