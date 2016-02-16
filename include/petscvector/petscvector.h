@@ -45,6 +45,8 @@ class PetscVector {
 
 		Vec get_vector() const; // TODO: temp, direct access to inner vector should be forbidden
 		int size() const;
+		int local_size() const;
+
 		double get(int index);
 		void get_ownership(int *low, int *high);
 

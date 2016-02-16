@@ -23,6 +23,7 @@
 /* petsc */
 #include "petsc.h"
 #include "petscvector.h"
+#include "generalmatrix.h"
 
 
 using namespace minlin::threx;
@@ -32,9 +33,10 @@ MINLIN_INIT
 int DEBUG_MODE = 0;
 bool PETSC_INITIALIZED = false;
 
-#define TEST_MINLIN true /* just for control on one CPU */
-#define TEST_PETSC true /* use standart Vec from Petsc, assemble dense Mat and multiply with it using standart Petsc fuctions */
-#define TEST_PETSCVECTOR true /* use my minlin-matlab-style wrapper & Ben multiplication idea (I dont have a wrapper for matmult yet) */
+#define TEST_MINLIN false /* just for control on one CPU */
+#define TEST_PETSC false /* use standart Vec from Petsc, assemble dense Mat and multiply with it using standart Petsc fuctions */
+#define TEST_PETSCVECTOR false /* use my minlin-matlab-style wrapper & Ben multiplication idea */
+#define TEST_GENERALMATRIX_NONFREE true /* use my minlin-matlab-style wrapper */
 
 
 /* timer */
@@ -108,7 +110,6 @@ int main ( int argc, char *argv[] ) {
 
 		/* fill vector using OpenMP */
 		std::cout << " - fill vector" << std::endl;
-		#pragma omp parallel for private(k)
 		for(k=0;k<N;k++){
 			/* vector */
 			x_minlin(k) = get_some_value(k);
@@ -133,7 +134,7 @@ int main ( int argc, char *argv[] ) {
 		t_start = getUnixTime();
 
 
-		/* init Petsc Vector */
+		/* init Petsc matrix */
 		std::cout << " - init matrix" << std::endl;
 		Mat A_petsc;
 
@@ -205,7 +206,7 @@ int main ( int argc, char *argv[] ) {
 		ierr = VecAssemblyBegin(x_petsc); CHKERRQ(ierr);
 		ierr = VecAssemblyEnd(x_petsc); CHKERRQ(ierr);
 
-		std::cout << " - time init & fill vector: " << getUnixTime() - t_start << "s" << std::endl;
+		std::cout << " - time init & fill vector matrix: " << getUnixTime() - t_start << "s" << std::endl;
 
 		/* if the vector is small, then print it */
 		if(N <= 15){
@@ -231,7 +232,7 @@ int main ( int argc, char *argv[] ) {
 			x_petscvector(k) = get_some_value(k);
 		}	
 
-		std::cout << " - time init & fill vector, matrix: " << getUnixTime() - t_start << "s" << std::endl;
+		std::cout << " - time init & fill vector,: " << getUnixTime() - t_start << "s" << std::endl;
 
 		/* if the vector is small, then print it */
 		if(N <= 15) std::cout << "  " << x_petscvector << std::endl;	
@@ -240,6 +241,44 @@ int main ( int argc, char *argv[] ) {
 		PetscVector Ax_petscvector(N);
 		
 	#endif
+
+	#if TEST_GENERALMATRIX_NONFREE
+		std::cout << std::endl << "GENERALMATRIX_NONFREE:" << std::endl;
+
+		t_start = getUnixTime();
+
+		/* init PetscVector */
+		std::cout << " - init vector" << std::endl;
+		PetscVector x_gn(N);
+
+		/* fill vector */
+		std::cout << " - fill vector" << std::endl;
+
+		for(k=0;k<N;k++){
+			x_gn(k) = get_some_value(k);
+		}	
+
+		/* if the vector is small, then print it */
+		if(N <= 15) std::cout << "  " << x_gn << std::endl;	
+
+
+		/* initialize matrix */
+		std::cout << " - init matrix from vector" << std::endl;
+		LaplaceMatrix_petsc A_gn(x_gn);
+		
+
+		/* if the matrix is small, then print it */
+		if(N <= 15) std::cout << "  " << A_gn << std::endl;	
+		
+
+		std::cout << " - time init & fill vector, matrix: " << getUnixTime() - t_start << "s" << std::endl;
+
+
+		/* prepare result vector */
+		PetscVector Ax_petscvector(N);
+
+	#endif
+
 
 	std::cout << std::endl;
 

@@ -124,6 +124,18 @@ int PetscVector::size() const{
 	return global_size;
 }
 
+/* get local size of the vector */
+int PetscVector::local_size() const{
+	if(DEBUG_MODE >= 100) std::cout << "(PetscVector)FUNCTION: local_size()" << std::endl;
+
+	int local_size;
+
+	TRY( VecGetLocalSize(inner_vector,&local_size) );
+
+	return local_size;
+}
+
+
 /* get single value with given id of the vector (works only with local id), really slow */
 double PetscVector::get(int i)
 {
