@@ -34,9 +34,9 @@ using namespace minlin::threx;
 	#define MyVector DeviceVector
 	#define MyMatrix DeviceMatrix
 
-	#define TEST_MINLIN_FULL true
+	#define TEST_MINLIN_FULL false
 	#define TEST_MINLIN true
-	#define TEST_FOR true
+	#define TEST_FOR false
 	#define TEST_OMP false
 	#define TEST_CUDA true
 
