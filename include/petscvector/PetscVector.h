@@ -6,7 +6,7 @@ namespace threx { // TODO: maybe choose the different namespace for my own Petsc
 PetscVectorWrapperSub PetscVector::operator()(minlin::detail::all_type add_in) const{
 	if(DEBUG_MODE >= 100) std::cout << "(PetscVector)OPERATOR: vec(all)" << std::endl;
 
-	IS new_subvector_is; // TODO: this is quite stupid
+	IS new_subvector_is; // TODO: this is quite stupid, what about returning *this?
 	ISCreateStride(PETSC_COMM_WORLD, this->size(), 0,1, &new_subvector_is);
 	
 	return PetscVectorWrapperSub(this->inner_vector, new_subvector_is, true);
@@ -16,7 +16,7 @@ PetscVectorWrapperSub PetscVector::operator()(minlin::detail::all_type add_in) c
 /*! \fn PetscVector
     \brief Default constructor.
     
-    No vector space allocated.
+    No vector allocated.
 */
 PetscVector::PetscVector(){
 	if(DEBUG_MODE >= 100) std::cout << "(PetscVector)CONSTRUCTOR: empty" << std::endl;
