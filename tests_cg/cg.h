@@ -50,11 +50,6 @@ namespace threx {
 		gg = dot(g,g);
 		normg = std::sqrt(gg);
 
-		std::cout << " g = " << g << std::endl;
-		std::cout << " p = " << p << std::endl;
-		std::cout << " normg = " << normg << std::endl;
-
-
 		while(normg > 0.001 && it < 10000){
 			/* compute new approximation */
 

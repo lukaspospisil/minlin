@@ -85,7 +85,7 @@ class PetscVector {
 		
 		/* y = A*x, where A*x is created as RHS */
 		template<class VectorType>
-		PetscVector &operator=(GeneralMatrixRHS<VectorType> rhs){
+		VectorType &operator=(GeneralMatrixRHS<VectorType> rhs){
 			rhs.matmult(*this);
 			return *this;
 		}

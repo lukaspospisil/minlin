@@ -32,8 +32,6 @@ namespace minlin {
 // Range and conformance checking is optionally enabled through the
 // MINLIN_DEBUG macro.
 
-
-
 template<class Expression>
 class Vector {
 public:

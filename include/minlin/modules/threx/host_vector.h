@@ -30,12 +30,26 @@ namespace minlin {
     
 namespace threx {
 
+/* Pospisil: for multiplication with general matrix */
+template<class VectorType>
+class GeneralMatrixRHS;
+
+
 // No template typedefs in C++03, so use a derived class template instead
 template<typename T>
 class HostVector
     : public Vector<ByValue<thrust::host_vector<T> > > {
 public:        
     typedef Vector<ByValue<thrust::host_vector<T> > > base;
+
+
+	/* Pospisil: y = A*x, where A*x is created as GeneralMatrixRHS */
+//	template<class VectorType>
+	HostVector &operator=(GeneralMatrixRHS<HostVector> rhs){
+		rhs.matmult(*this);
+		return *this;
+	}
+
 
     // Just need to write the constructors and assignment operators.
     // Everything else is inherited.
