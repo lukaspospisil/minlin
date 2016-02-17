@@ -109,10 +109,10 @@ class PetscVectorWrapperComb
 		
 	public:
 		PetscVectorWrapperComb();
-		PetscVectorWrapperComb(PetscVectorWrapperCombNode &comb_node);
-		PetscVectorWrapperComb(PetscVector &vec);
-		PetscVectorWrapperComb(PetscVectorWrapperSub subvector);
-		PetscVectorWrapperComb(double scalar_value);
+		PetscVectorWrapperComb(const PetscVectorWrapperCombNode &comb_node);
+		PetscVectorWrapperComb(const PetscVector &vec);
+		PetscVectorWrapperComb(const PetscVectorWrapperSub subvector);
+		PetscVectorWrapperComb(const double &scalar_value);
 
 		~PetscVectorWrapperComb();
 
@@ -120,7 +120,7 @@ class PetscVectorWrapperComb
 		int get_listsize() const;
 		int get_vectorsize() const;
 		Vec get_first_vector();
-		void append(PetscVectorWrapperCombNode &new_node);
+		void append(const PetscVectorWrapperCombNode &new_node);
 		void merge(PetscVectorWrapperComb &comb);
 		void get_arrays(PetscScalar *coeffs, Vec *vectors);
 		
@@ -224,8 +224,8 @@ class PetscVectorWrapperSub
 } /* end of MinLin namespace */
 
 
-#include "PetscVector.h"
-#include "PetscVectorWrapperComb.h"
-#include "PetscVectorWrapperSub.h"
+#include "petscvector_impl.h"
+#include "wrappercomb_impl.h"
+#include "wrappersub_impl.h"
 
 #endif

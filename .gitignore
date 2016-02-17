@@ -14,3 +14,4 @@ nbproject
 
 tests/build
 tests_petsc/build
+tests_cg/build

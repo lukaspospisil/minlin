@@ -1,3 +1,5 @@
+#ifndef PETSCVECTOR_WRAPPERCOMB_IMPL_H
+#define	PETSCVECTOR_WRAPPERCOMB_IMPL_H
 
 namespace minlin {
 
@@ -14,7 +16,7 @@ PetscVectorWrapperComb::PetscVectorWrapperComb(){
 }
 
 /* constructor from node */
-PetscVectorWrapperComb::PetscVectorWrapperComb(PetscVectorWrapperCombNode &comb_node){
+PetscVectorWrapperComb::PetscVectorWrapperComb(const PetscVectorWrapperCombNode &comb_node){
 	if(DEBUG_MODE >= 100) std::cout << "(WrapperComb)CONSTRUCTOR: WrapperComb" << std::endl;
 
 	/* append node */
@@ -22,7 +24,7 @@ PetscVectorWrapperComb::PetscVectorWrapperComb(PetscVectorWrapperCombNode &comb_
 }
 
 /* constructor from vec */
-PetscVectorWrapperComb::PetscVectorWrapperComb(PetscVector &vec){
+PetscVectorWrapperComb::PetscVectorWrapperComb(const PetscVector &vec){
 	if(DEBUG_MODE >= 100) std::cout << "(WrapperComb)CONSTRUCTOR: PetscVector" << std::endl;
 
 	/* create node from vector */
@@ -33,7 +35,7 @@ PetscVectorWrapperComb::PetscVectorWrapperComb(PetscVector &vec){
 }
 
 /* constructor from scalar_value - create Node from value */
-PetscVectorWrapperComb::PetscVectorWrapperComb(double scalar_value){
+PetscVectorWrapperComb::PetscVectorWrapperComb(const double &scalar_value){
 	if(DEBUG_MODE >= 100) std::cout << "(WrapperComb)CONSTRUCTOR: double" << std::endl;
 
 	/* create node from scalar_value = create vector of size 1 */
@@ -64,7 +66,7 @@ PetscVectorWrapperComb::~PetscVectorWrapperComb(){
 }
 
 /* append new node to the list */
-void PetscVectorWrapperComb::append(PetscVectorWrapperCombNode &new_node){
+void PetscVectorWrapperComb::append(const PetscVectorWrapperCombNode &new_node){
 	if(DEBUG_MODE >= 100) std::cout << "(WrapperComb)FUNCTION: append(WrapperCombNode)" << std::endl;
 	
 	comb_list.push_back(new_node);
@@ -318,6 +320,8 @@ std::ostream &operator<<(std::ostream &output, PetscVectorWrapperCombNode &wrapp
 
 
 
-}
+} /* end of namespace */
 
-}
+} /* end of MinLin namespace */
+
+#endif

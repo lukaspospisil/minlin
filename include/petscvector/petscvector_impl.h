@@ -1,3 +1,6 @@
+#ifndef PETSCVECTOR_IMPL_H
+#define	PETSCVECTOR_IMPL_H
+
 namespace minlin {
 
 namespace threx { // TODO: maybe choose the different namespace for my own Petsc stuff
@@ -433,3 +436,4 @@ const PetscVector operator/(const PetscVector &vec1, const PetscVector &vec2)
 
 } /* end of MinLin namespace */
 
+#endif

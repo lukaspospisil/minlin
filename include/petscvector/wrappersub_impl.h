@@ -1,3 +1,6 @@
+#ifndef PETSCVECTOR_WRAPPERSUB_IMPL_H
+#define	PETSCVECTOR_WRAPPERSUB_IMPL_H
+
 
 namespace minlin {
 
@@ -326,5 +329,8 @@ double dot(const PetscVectorWrapperSub subvec1, const PetscVectorWrapperSub subv
 
 
 
-}
-}
+} /* end of namespace */
+
+} /* end of MinLin namespace */
+
+#endif

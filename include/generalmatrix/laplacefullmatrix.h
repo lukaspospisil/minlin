@@ -78,6 +78,13 @@ LaplaceFullMatrix<PetscVector>::LaplaceFullMatrix(const PetscVector &x){
 				}
 			}
 
+			// TODO: only for testing string problem - regularization - remove this hotfix 
+			if(true){
+				if((row == 0 && col == 1) || (row == 1 && col == 0) || (row == N-2 && col == N-1) || (row == N-1 && col == N-2)){
+					new_value = 0;
+				}
+			}
+
 			/* set value */
 			if(row >= 0 && row <= N-1 && col >=0 && col <= N-1){
 				TRY( MatSetValue(A_petsc,row,col,new_value,INSERT_VALUES) );
@@ -121,8 +128,9 @@ template<>
 void LaplaceFullMatrix<PetscVector>::matmult(PetscVector &y, const PetscVector &x) const { 
 	if(DEBUG_MODE >= 100) std::cout << "(LaplaceFullMatrix)FUNCTION: matmult" << std::endl;
 
+	// TODO: maybe y is not initialized, who knows
+	
 	TRY( MatMult(A_petsc, x.get_vector(), y.get_vector()) ); // TODO: I dont want to use get_vector :( friend in PetscVector? and in MinLin?
-
 }
 
 
