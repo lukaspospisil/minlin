@@ -23,7 +23,7 @@
 /* petsc */
 #include "petsc.h"
 #include "petscvector.h"
-#include "generalmatrix.h"
+#include "laplacefullmatrix.h"
 
 
 using namespace minlin::threx;
@@ -264,7 +264,7 @@ int main ( int argc, char *argv[] ) {
 
 		/* initialize matrix */
 		std::cout << " - init matrix from vector" << std::endl;
-		LaplaceMatrixFull<PetscVector> A_gmfull(x_gmfull);
+		LaplaceFullMatrix<PetscVector> A_gmfull(x_gmfull);
 		
 
 		/* if the matrix is small, then print it */
