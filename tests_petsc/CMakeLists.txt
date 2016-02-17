@@ -100,6 +100,11 @@ set(PETSCVECTOR_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../include/petscvector)
 message(STATUS "${Yellow}PETSCVECTOR_INCLUDE = ${PETSCVECTOR_INCLUDE} ${ColourReset}")
 include_directories(${PETSCVECTOR_INCLUDE})
 
+# GENERALMATRIX: define variables for include directories
+set(GENERALMATRIX_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../include/generalmatrix)
+message(STATUS "${Yellow}GENERALMATRIX_INCLUDE = ${GENERALMATRIX_INCLUDE} ${ColourReset}")
+include_directories(${GENERALMATRIX_INCLUDE})
+
 
 set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
 	-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP
@@ -108,15 +113,18 @@ set(MINLIN_DEVICE_DEFS # we use -D here because this isn't added automatically
 	-DUSE_MINLIN)
 
 
+# -------------- MATMULT --------------
+
 # add main executable file
 cuda_add_executable(test_matmult test_matmult.cu
 	OPTIONS "${MINLIN_DEVICE_DEFS} -arch=sm_35 --compiler-options \"${CUDA_CXX_FLAGS}\""
 	DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 target_link_libraries(test_matmult mkl_core mkl_gnu_thread mkl_rt boost_program_options cublas ${PETSC_LIBRARIES})
 
-
 # set the name of output file
 set_target_properties(test_matmult PROPERTIES
 	OUTPUT_NAME test_matmult
 	)
 	
+
+

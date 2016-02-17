@@ -19,6 +19,9 @@ class PetscVectorWrapperComb; /* wrapper to allow manipulation with linear combi
 class PetscVectorWrapperCombNode; /* one node of previous wrapper */
 class PetscVectorWrapperSub; /* wrapper to allow subvectors */
 
+/* class for manipulation with A*x as a RHS */
+template<class VectorType>
+class GeneralMatrixRHS;
 
 
 /*! \class PetscVector
@@ -45,6 +48,8 @@ class PetscVector {
 
 		Vec get_vector() const; // TODO: temp, direct access to inner vector should be forbidden
 		int size() const;
+		int local_size() const;
+
 		double get(int index);
 		void get_ownership(int *low, int *high);
 
@@ -78,6 +83,13 @@ class PetscVector {
 		friend const PetscVector operator/(const PetscVector &vec1, const PetscVector &vec2);
 
 		
+		/* y = A*x, where A*x is created as RHS */
+		template<class VectorType>
+		PetscVector &operator=(GeneralMatrixRHS<VectorType> rhs){
+			rhs.matmult(*this);
+			return *this;
+		}
+
 		/* define operator PetscVector(all), it is a mixture of petscvector and minlin  */
 		PetscVectorWrapperSub operator()(minlin::detail::all_type add_in) const;
 
